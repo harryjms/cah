@@ -91,7 +91,7 @@ const useStyles = createUseStyles((theme) => ({
   },
 }));
 
-const Card = ({ children, colour, pick = 1, hideValue = false }) => {
+const Card = ({ children, colour, pick = 1, hideValue = false, innerRef }) => {
   const { selected, toggleSelected, selectable } = useRail();
   const classes = useStyles({ selectable });
 
@@ -112,6 +112,7 @@ const Card = ({ children, colour, pick = 1, hideValue = false }) => {
         .filter((a) => a)
         .join(" ")}
       onClick={handleSelect}
+      ref={innerRef}
     >
       <div className="inner">
         <div className="front">
