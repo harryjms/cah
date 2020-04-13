@@ -9,13 +9,13 @@ const Game = ({ match }) => {
   const [hideCard, setHideCard] = useState(false);
   const [blackCard, setBlackCard] = useState({
     text: "I got 99 problems but _ ain't one.",
-    pick: 1,
+    pick: 2,
   });
   const [spread, setSpread] = useState(null);
   const [whiteCards, setWhiteCards] = useState(["Dick envy"]);
   const [playedCards, setPlayedCards] = useState([
-    "Dick envy",
-    "A gaping vagina",
+    ["Dick envy", "A gaping vagina"],
+    ["Dick envy", "A gaping vagina"],
   ]);
 
   const handleSpreadStack = (i) => {
@@ -25,6 +25,7 @@ const Game = ({ match }) => {
       setSpread(null);
     }
   };
+
   return (
     <>
       <Rail>

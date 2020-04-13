@@ -69,6 +69,9 @@ const useStyles = createUseStyles((theme) => ({
       textAlign: "right",
       textTransform: "uppercase",
     },
+    [theme.mediaQuery.iPhone8]: {
+      fontSize: "8pt",
+    },
   },
   black: {
     "& .front, & .back": {
