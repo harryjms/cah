@@ -13,8 +13,19 @@ const useStyles = createUseStyles({
       borderStyle: "solid",
       borderColor: "#444444",
       padding: "8px 10px",
+      marginRight: 8,
       "&:focus": {
         boxShadow: "0 0 0 1px #444444",
+      },
+      "&:disabled": {
+        backgroundColor: "#e8e8e8",
+      },
+    },
+    "@media screen and (max-width: 640px)": {
+      width: "100%",
+      marginBottom: 8,
+      "& input": {
+        width: "100%",
       },
     },
   },

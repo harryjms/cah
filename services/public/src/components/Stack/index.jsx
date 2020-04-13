@@ -3,6 +3,10 @@ import { createUseStyles } from "react-jss";
 const useStyles = createUseStyles({
   Stack: {
     display: "flex",
+    "@media screen and (max-width: 640px)": {
+      flexFlow: "column !important",
+      alignItems: "flex-start !important",
+    },
   },
   HStack: {
     flexFlow: "row",

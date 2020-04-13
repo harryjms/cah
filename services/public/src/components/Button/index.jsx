@@ -20,6 +20,9 @@ const useStyles = createUseStyles({
     "&:disabled": {
       opacity: 0.7,
     },
+    "@media screen and (max-width: 640px)": {
+      width: "100%",
+    },
   },
 });
 
