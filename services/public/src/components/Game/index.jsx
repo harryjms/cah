@@ -12,7 +12,7 @@ import Invite from "../Invite";
 const Game = ({ match }) => {
   const { gameID } = useCookies();
   const [showInvite, setShowInvite] = useState(false);
-
+  const hello = bye;
   const [gameParams, setGameParams] = useState({
     isHost: false,
     blackCard: {},
