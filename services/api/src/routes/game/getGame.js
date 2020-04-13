@@ -48,23 +48,19 @@ const emitGameById = (socket) => {
 
 const joinGameSocket = (socket) => {
   socket.on("JoinGame", () => {
-    const { cookie } = socket.client.request.headers;
-    const c = cookieParse(cookie);
-    if (c && c["token"]) {
-      try {
-        const payload = jwt.verifyToken(c["token"]);
-        fetchGameById(payload.gameID).then((game) => {
-          if (game) {
-            console.log(`[${payload.name}]: Joined Game ${game._id}.`);
-            socket
-              .to(game._id)
-              .emit("NOTIFICATION", `${payload.name} joined the game.`);
-            socket.join(game._id);
-          }
-        });
-      } catch (error) {
-        throw new Error(error);
-      }
+    try {
+      const payload = socket.player;
+      fetchGameById(payload.gameID).then((game) => {
+        if (game) {
+          console.log(`[${payload.name}]: Joined Game ${game._id}.`);
+          socket
+            .to(game._id)
+            .emit("NOTIFICATION", `${payload.name} joined the game.`);
+          socket.join(game._id);
+        }
+      });
+    } catch (error) {
+      throw new Error(error);
     }
   });
 };

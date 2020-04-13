@@ -1,9 +1,10 @@
 const router = require("express").Router();
 const mongo = require("../../helpers/mongo");
-const { ObjectID } = require("mongodb");
 const db = () => mongo().then((db) => db.collection("players"));
-const moment = require("moment");
 const { fetchGameById } = require("../game/getGame");
+const { parseFromSocket } = require("../../helpers/parseCookie");
+
+const { socketio } = require("../../index");
 
 const fetchPlayersInGame = (game) => db().then((col) => col.find({ game }));
 
@@ -31,8 +32,9 @@ const addPlayerToGame = async (name, game) => {
   }
 };
 
-const removePlayerFromGame = (name, game) =>
-  db().then((col) => col.deleteOne({ game, name }));
+const removePlayerFromGame = (name, game) => {
+  return db().then((col) => col.deleteOne({ game, name }));
+};
 
 module.exports.fetchPlayersInGame = fetchPlayersInGame;
 module.exports.addPlayerToGame = addPlayerToGame;
