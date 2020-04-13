@@ -9,6 +9,8 @@ import socketIOClient from "socket.io-client";
 import { useCookies } from "react-cookie";
 import Invite from "../Invite";
 
+import GameBar from "./GameBar";
+
 const Game = ({ history }) => {
   const [{ token }] = useCookies();
   const [showInvite, setShowInvite] = useState(false);
@@ -22,7 +24,7 @@ const Game = ({ history }) => {
     whiteCards: [],
     playedCards: [],
     selectedWinner: [],
-    players: [],
+    players: ["scratchedguitar", "lampy", "donky"],
     showBlackCard: false,
     gameState: "IDLE",
   });
@@ -73,8 +75,6 @@ const Game = ({ history }) => {
   const deck = () => {
     const { gameState, host } = gameParams;
     switch (gameState) {
-      case "IDLE":
-        return <Loading>Waiting for game to begin...</Loading>;
       case "READING":
         return <PlayedCards cards={gameParams.playedCards} />;
       case "SELECTING":
@@ -92,8 +92,7 @@ const Game = ({ history }) => {
           onDismiss={() => setShowInvite(false)}
         />
       )}
-      <button onClick={() => setShowInvite(true)}>Invite</button>
-      {gameParams.gameName && <h2>{gameParams.gameName}</h2>}
+      <GameBar game={gameParams} />
       <Rail>
         <Card
           colour="black"

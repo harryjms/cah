@@ -21,7 +21,7 @@ const addPlayerToGame = async (name, game) => {
       if (player.length > 0) {
         throw new Error("PLAYER_EXISTS");
       } else {
-        return db().then((col) => col.insertOne({ game, name }));
+        return db().then((col) => col.insertOne({ game, name, cards: [] }));
       }
     } else {
       throw new Error("GAME_NOT_FOUND");

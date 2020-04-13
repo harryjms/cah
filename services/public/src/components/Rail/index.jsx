@@ -10,7 +10,7 @@ const useStyles = createUseStyles((theme) => ({
 
     overflowX: "auto",
     whiteSpace: "nowrap",
-    padding: 20,
+    padding: "20px 0",
   },
 }));
 
