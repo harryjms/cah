@@ -17,11 +17,12 @@ const App = () => {
         <ThemeProvider theme={theme}>
           <CookiesProvider>
             <Switch>
-              <Route path="/game" component={Game} />
+              <Route path="/game" exact component={Game} />
               <Route
                 path="/game/:gameID"
-                render={({ math }) => (
-                  <Redirect to={`/join/${matchMedia.params.gameID}`} />
+                exact
+                render={({ match }) => (
+                  <Redirect to={`/join/${match.params.gameID}`} />
                 )}
               />
               <Route path="/join/:gameID?" component={Lobby} />

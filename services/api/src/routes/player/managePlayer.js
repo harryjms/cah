@@ -8,16 +8,21 @@ const fetchPlayersInGame = (game) => db().then((col) => col.find({ game }));
 
 const addPlayerToGame = (name, game) =>
   db().then((col) =>
-    col.findOne({ game, name }).then((result) => {
-      if (!result) {
-        return col.insertOne({
-          game,
-          name,
-          joined: moment.utc().toISOString(),
-        });
-      } else {
-        return result;
+    fetchPlayersInGame(game).then((g) => {
+      if (!g) {
+        return "GAME_NOT_FOUND";
       }
+      return col.findOne({ game, name }).then((result) => {
+        if (!result) {
+          return col.insertOne({
+            game,
+            name,
+            joined: moment.utc().toISOString(),
+          });
+        } else {
+          return "PLAYER_EXISTS";
+        }
+      });
     })
   );
 

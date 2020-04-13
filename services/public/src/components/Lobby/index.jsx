@@ -6,6 +6,7 @@ import { HStack } from "../Stack";
 import TextField from "../TextField";
 import Button from "../Button";
 import loadingGif from "../../assets/images/loader.gif";
+import { useCookies } from "react-cookie";
 
 const useStyles = createUseStyles({
   loading: {

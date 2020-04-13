@@ -7,9 +7,23 @@ const postJoinGame = router.post("/join-game", (req, res, next) =>
     .addPlayerToGame(req.body.name, req.body.game)
     .then((result) => {
       if (result) {
-        res.cookie("gameID", result.game);
-        res.cookie("name", result.name);
-        res.sendStatus(200);
+        if (result === "GAME_NOT_FOUND") {
+          res.statusCode = 404;
+          res.json({
+            error: "GAME_NOT_FOUND",
+            message: "The requested game could not be found.",
+          });
+        } else if (result !== "PLAYER_EXISTS") {
+          res.cookie("gameID", result.game);
+          res.cookie("name", result.name);
+          res.sendStatus(200);
+        } else {
+          res.statusCode = 409;
+          res.json({
+            error: "PLAYER_EXISTS",
+            message: "The screen name is already in use in this game.",
+          });
+        }
       } else {
         res.sendStatus(404);
       }
