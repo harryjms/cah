@@ -35,3 +35,4 @@ const emitGameById = (socket) => {
 
 module.exports = getGameById;
 module.exports.emitById = emitGameById;
+module.exports.fetchGameById = fetchGameById;

@@ -16,7 +16,7 @@ const App = () => {
         <ThemeProvider theme={theme}>
           <CookiesProvider>
             <Switch>
-              <Route path="/game" component={Game} />
+              <Route path="/game/:gameID" component={Game} />
               <Route path="/join/:gameID?" component={Lobby} />
               <Route exact component={NewGame} />
             </Switch>

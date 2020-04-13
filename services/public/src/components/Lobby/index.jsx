@@ -37,7 +37,7 @@ const Lobby = ({ match, history }) => {
     if (screenName !== "") {
       setLoading(true);
       axios
-        .post("/api/game/join", { gameID, name: screenName })
+        .post("/api/player/join-game", { game: gameID, name: screenName })
         .then(() => {
           history.push("/game/" + gameID);
         })

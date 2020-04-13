@@ -13,7 +13,11 @@ module.exports = {
         loader: "babel-loader",
         exclude: /node_modules/,
       },
-      { test: /.gif$/, loader: "file-loader", options: { publicPath: "/" } },
+      {
+        test: /.(gif|svg)$/,
+        loader: "file-loader",
+        options: { publicPath: "/" },
+      },
     ],
   },
   plugins: [

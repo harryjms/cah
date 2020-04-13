@@ -7,9 +7,11 @@ import PlayedCards from "./PlayedCards";
 import axios from "axios";
 import socketIOClient from "socket.io-client";
 import { useCookies } from "react-cookie";
+import Invite from "../Invite";
 
 const Game = ({ match }) => {
   const { gameID } = useCookies();
+  const [showInvite, setShowInvite] = useState(false);
 
   const [gameParams, setGameParams] = useState({
     isHost: false,
@@ -48,6 +50,8 @@ const Game = ({ match }) => {
 
   return (
     <>
+      {showInvite && <Invite code={match.params.gameID} />}
+      <button onClick={() => setShowInvite(true)}>Invite</button>
       <Rail>
         <Card
           colour="black"
