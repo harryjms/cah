@@ -40,7 +40,7 @@ const Lobby = ({ match, history }) => {
       axios
         .post("/api/player/join-game", { game: gameID, name: screenName })
         .then(() => {
-          history.push("/game/" + gameID);
+          history.push("/game");
         })
         .catch((err) => {
           console.error(err);

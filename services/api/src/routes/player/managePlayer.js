@@ -3,28 +3,33 @@ const mongo = require("../../helpers/mongo");
 const { ObjectID } = require("mongodb");
 const db = () => mongo().then((db) => db.collection("players"));
 const moment = require("moment");
+const { fetchGameById } = require("../game/getGame");
 
 const fetchPlayersInGame = (game) => db().then((col) => col.find({ game }));
 
-const addPlayerToGame = (name, game) =>
-  db().then((col) =>
-    fetchPlayersInGame(game).then((g) => {
-      if (!g) {
-        return "GAME_NOT_FOUND";
+const addPlayerToGame = async (name, game) => {
+  try {
+    // check the Game ID exists
+    const gameData = await fetchGameById(game);
+
+    if (gameData) {
+      // check if the screen name is in use
+      const player = await db().then((col) =>
+        col.find({ game, name }).toArray()
+      );
+
+      if (player.length > 0) {
+        throw new Error("PLAYER_EXISTS");
+      } else {
+        return db().then((col) => col.insertOne({ game, name }));
       }
-      return col.findOne({ game, name }).then((result) => {
-        if (!result) {
-          return col.insertOne({
-            game,
-            name,
-            joined: moment.utc().toISOString(),
-          });
-        } else {
-          return "PLAYER_EXISTS";
-        }
-      });
-    })
-  );
+    } else {
+      throw new Error("GAME_NOT_FOUND");
+    }
+  } catch (err) {
+    throw new Error(err);
+  }
+};
 
 const removePlayerFromGame = (name, game) =>
   db().then((col) => col.deleteOne({ game, name }));

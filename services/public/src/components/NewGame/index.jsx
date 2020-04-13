@@ -29,7 +29,7 @@ const NewGame = ({ history }) => {
     axios
       .post("/api/game/new", { screenName, gameName })
       .then(({ data: game }) => {
-        history.push("/game/" + game.gameID);
+        history.push("/game");
       })
       .catch((err) => {
         setError(err);

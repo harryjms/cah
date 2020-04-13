@@ -26,15 +26,17 @@ const postGame = router.post("/new", (req, res, next) => {
   const { screenName, gameName } = req.body;
   insertGame(screenName, gameName)
     .then(({ insertedId }) =>
-      managePlayers.addPlayerToGame(screenName, insertedId).then(() => {
-        res.cookie("gameID", insertedId.toString());
-        res.cookie("name", screenName);
-        res.json({
-          screenName,
-          gameName,
-          gameID: insertedId,
-        });
-      })
+      managePlayers
+        .addPlayerToGame(screenName, insertedId.toString())
+        .then(() => {
+          res.cookie("gameID", insertedId.toString());
+          res.cookie("name", screenName);
+          res.json({
+            screenName,
+            gameName,
+            gameID: insertedId,
+          });
+        })
     )
     .catch(next);
 });
