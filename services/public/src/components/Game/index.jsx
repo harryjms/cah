@@ -10,10 +10,14 @@ import { useCookies } from "react-cookie";
 import Invite from "../Invite";
 
 const Game = ({ match }) => {
-  const { gameID } = useCookies();
+  const { token } = useCookies();
   const [showInvite, setShowInvite] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [gameParams, setGameParams] = useState({
-    isHost: false,
+    id: null,
+    screenName: null,
+    host: false,
+    gameName: null,
     blackCard: {},
     whiteCards: [],
     playedCards: [],
@@ -25,18 +29,29 @@ const Game = ({ match }) => {
 
   useEffect(() => {
     let socket;
-    console.log(gameID);
-    if (gameID) {
-      socket = socketIOClient("/");
-      if (gameID !== gameParams._id) {
-        socket.emit("GameData", { gameID });
-      }
-      socket.on("GameData", (data) => setGameParams(data));
+    if (!gameParams.id) {
+      axios
+        .get("/api/game/details")
+        .then(({ data }) => {
+          setGameParams(data);
+          setLoading(false);
+        })
+        .catch((err) => {
+          setLoading(false);
+          throw new Error(err);
+        });
     }
-  }, [gameID]);
+    // if (gameID) {
+    //   socket = socketIOClient("/");
+    //   if (gameID !== gameParams._id) {
+    //     socket.emit("GameData", { gameID });
+    //   }
+    //   socket.on("GameData", (data) => setGameParams(data));
+    // }
+  }, []);
 
   const deck = () => {
-    const { gameState, isHost } = gameParams;
+    const { gameState, host } = gameParams;
     switch (gameState) {
       case "IDLE":
         return <Loading>Waiting for game to begin...</Loading>;
@@ -56,6 +71,7 @@ const Game = ({ match }) => {
         />
       )}
       <button onClick={() => setShowInvite(true)}>Invite</button>
+      {gameParams.gameName && <h2>{gameParams.gameName}</h2>}
       <Rail>
         <Card
           colour="black"
@@ -73,6 +89,7 @@ const Game = ({ match }) => {
           </Card>
         ))}
       </Rail>
+      {loading && <Loading fullScreen>Loading Game</Loading>}
     </>
   );
 };

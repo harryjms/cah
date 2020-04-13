@@ -2,6 +2,7 @@ const router = require("express").Router();
 const mongo = require("../../helpers/mongo");
 const moment = require("moment");
 const managePlayers = require("../player/managePlayer");
+const jwt = require("../../helpers/jwt");
 
 const db = () => mongo().then((db) => db.collection("games"));
 
@@ -29,12 +30,20 @@ const postGame = router.post("/new", (req, res, next) => {
       managePlayers
         .addPlayerToGame(screenName, insertedId.toString())
         .then(() => {
+          const token = jwt.createToken({
+            gameID: insertedId.toString(),
+            name: screenName,
+            host: true,
+          });
           res.cookie("gameID", insertedId.toString());
           res.cookie("name", screenName);
+          res.cookie("host", true);
+          res.cookie("token", token);
           res.json({
             screenName,
             gameName,
             gameID: insertedId,
+            host: true,
           });
         })
     )

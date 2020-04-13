@@ -1,13 +1,21 @@
 const router = require("express").Router();
 const { fetchGameById } = require("../game/getGame");
 const managePlayer = require("./managePlayer");
+const jwt = require("../../helpers/jwt");
 
 const postJoinGame = router.post("/join-game", (req, res, next) =>
   managePlayer
     .addPlayerToGame(req.body.name, req.body.game)
     .then((result) => {
+      const token = jwt.createToken({
+        gameID: req.body.game,
+        name: req.body.name,
+        host: false,
+      });
       res.cookie("gameID", req.body.game);
       res.cookie("name", req.body.name);
+      res.cookie("host", false);
+      res.cookie("token", token);
       res.sendStatus(200);
     })
     .catch((err) => {
