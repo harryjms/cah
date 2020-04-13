@@ -1,5 +1,5 @@
 import React from "react";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, Redirect } from "react-router-dom";
 import { CookiesProvider } from "react-cookie";
 
 import { ThemeProvider } from "react-jss";
@@ -8,6 +8,7 @@ import ErrorBoundary from "../ErrorBoundary";
 import NewGame from "../NewGame";
 import Lobby from "../Lobby";
 import Game from "../Game";
+import Error404 from "../Error404";
 
 const App = () => {
   return (
@@ -16,9 +17,16 @@ const App = () => {
         <ThemeProvider theme={theme}>
           <CookiesProvider>
             <Switch>
-              <Route path="/game/:gameID" component={Game} />
+              <Route path="/game" component={Game} />
+              <Route
+                path="/game/:gameID"
+                render={({ math }) => (
+                  <Redirect to={`/join/${matchMedia.params.gameID}`} />
+                )}
+              />
               <Route path="/join/:gameID?" component={Lobby} />
-              <Route exact component={NewGame} />
+              <Route path="/" exact component={NewGame} />
+              <Route component={Error404} />
             </Switch>
           </CookiesProvider>
         </ThemeProvider>

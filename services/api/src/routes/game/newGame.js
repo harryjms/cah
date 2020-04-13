@@ -27,6 +27,8 @@ const postGame = router.post("/new", (req, res, next) => {
   insertGame(screenName, gameName)
     .then(({ insertedId }) =>
       managePlayers.addPlayerToGame(screenName, insertedId).then(() => {
+        res.cookie("gameID", insertedId.toString());
+        res.cookie("name", screenName);
         res.json({
           screenName,
           gameName,
