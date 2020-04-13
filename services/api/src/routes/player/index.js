@@ -10,11 +10,8 @@ const postJoinGame = router.post("/join-game", (req, res, next) =>
       const token = jwt.createToken({
         gameID: req.body.game,
         name: req.body.name,
-        host: false,
+        isHost: false,
       });
-      res.cookie("gameID", req.body.game);
-      res.cookie("name", req.body.name);
-      res.cookie("host", false);
       res.cookie("token", token);
       res.sendStatus(200);
     })

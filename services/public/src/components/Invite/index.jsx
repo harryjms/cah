@@ -18,7 +18,7 @@ const Invite = ({ code, onDismiss }) => {
       <h3>via Link</h3>
       <TextField
         value={`http://${location.host}/join/${code}`}
-        readonly
+        readOnly
         onChange={() => {}}
       />
       <br />

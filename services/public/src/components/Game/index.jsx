@@ -66,7 +66,7 @@ const Game = ({ match }) => {
     <>
       {showInvite && (
         <Invite
-          code={match.params.gameID}
+          code={gameParams.gameID}
           onDismiss={() => setShowInvite(false)}
         />
       )}

@@ -33,17 +33,14 @@ const postGame = router.post("/new", (req, res, next) => {
           const token = jwt.createToken({
             gameID: insertedId.toString(),
             name: screenName,
-            host: true,
+            isHost: true,
           });
-          res.cookie("gameID", insertedId.toString());
-          res.cookie("name", screenName);
-          res.cookie("host", true);
           res.cookie("token", token);
           res.json({
             screenName,
             gameName,
             gameID: insertedId,
-            host: true,
+            isHost: true,
           });
         })
     )
