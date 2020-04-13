@@ -9,12 +9,12 @@ import socketIOClient from "socket.io-client";
 import { useCookies } from "react-cookie";
 import Invite from "../Invite";
 
-const Game = ({ match }) => {
-  const { token } = useCookies();
+const Game = ({ history }) => {
+  const [{ token }] = useCookies();
   const [showInvite, setShowInvite] = useState(false);
   const [loading, setLoading] = useState(true);
   const [gameParams, setGameParams] = useState({
-    id: null,
+    gameID: null,
     screenName: null,
     host: false,
     gameName: null,
@@ -28,27 +28,39 @@ const Game = ({ match }) => {
   });
 
   useEffect(() => {
-    let socket;
     if (!gameParams.id) {
-      axios
-        .get("/api/game/details")
-        .then(({ data }) => {
-          setGameParams(data);
-          setLoading(false);
-        })
-        .catch((err) => {
-          setLoading(false);
-          throw new Error(err);
-        });
+      if (token) {
+        axios
+          .get("/api/game/details")
+          .then(({ data }) => {
+            setGameParams(data);
+            setLoading(false);
+          })
+          .catch((err) => {
+            if (err.response.status === 403) {
+              history.push("/");
+            } else {
+              setLoading(false);
+              throw new Error(err);
+            }
+          });
+      } else {
+        history.push("/");
+      }
     }
-    // if (gameID) {
-    //   socket = socketIOClient("/");
-    //   if (gameID !== gameParams._id) {
-    //     socket.emit("GameData", { gameID });
-    //   }
-    //   socket.on("GameData", (data) => setGameParams(data));
-    // }
   }, []);
+
+  useEffect(() => {
+    let socket;
+    const { gameID } = gameParams;
+    if (gameID) {
+      socket = socketIOClient("/");
+      socket.emit("GameData", { gameID });
+      socket.on("GameData", (data) => {
+        setGameParams((prev) => ({ ...prev, ...data }));
+      });
+    }
+  }, [gameParams.gameID]);
 
   const deck = () => {
     const { gameState, host } = gameParams;
@@ -62,7 +74,9 @@ const Game = ({ match }) => {
     }
   };
 
-  return (
+  return loading ? (
+    <Loading fullScreen>Loading Game...</Loading>
+  ) : (
     <>
       {showInvite && (
         <Invite
@@ -89,7 +103,6 @@ const Game = ({ match }) => {
           </Card>
         ))}
       </Rail>
-      {loading && <Loading fullScreen>Loading Game</Loading>}
     </>
   );
 };

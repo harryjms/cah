@@ -23,32 +23,52 @@ const getGameById = router.get("/details/:id", (req, res, next) => {
 });
 
 const emitGameById = (socket) => {
-  const { cookie } = socket.client.request.headers;
-  const c = cookieParse(cookie);
-  if (c && c["gameID"]) {
-    fetchGameById(c["gameID"]).then((game) => {
-      if (game) {
-        socket.emit("GameData", game);
+  socket.on("GameData", () => {
+    const { cookie } = socket.client.request.headers;
+    const c = cookieParse(cookie);
+    console.log(c);
+    if (c && c["token"]) {
+      try {
+        const payload = jwt.verifyToken(c["token"]);
+        fetchGameById(payload.gameID).then((game) => {
+          if (game) {
+            const { name, _id: gameID, ...gameData } = game;
+            socket.emit("GameData", {
+              gameID,
+              gameName: name,
+              ...gameData,
+            });
+          }
+        });
+      } catch (error) {
+        throw new Error(error);
       }
-    });
-  }
+    }
+  });
 };
 
 const getGameDetails = router.get("/details", async (req, res, next) => {
   const { token } = req.cookies;
   try {
     const { gameID, name: screenName, isHost } = jwt.verifyToken(token);
-    const { name: gameName, ...gameData } = await fetchGameById(gameID);
-    res.json({
-      gameID,
-      screenName,
-      gameName,
-      ...gameData,
-      isHost: gameData.host === screenName,
-    });
+    const gameData = await fetchGameById(gameID);
+    if (gameData) {
+      res.json({
+        gameID,
+        screenName,
+        gameName: gameData.name,
+        ...gameData,
+        isHost: gameData.host === screenName,
+      });
+    } else {
+      throw new Error("GAME_NOT_FOUND");
+    }
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
       return res.sendStatus(403);
+    }
+    if (error.message === "Error: GAME_NOT_FOUND") {
+      return res.sendStatus(404);
     }
     next(error);
   }
