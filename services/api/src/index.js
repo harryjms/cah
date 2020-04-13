@@ -9,15 +9,14 @@ const io = require("socket.io")(http);
 
 const { SERVER_PORT } = process.env;
 
+io.on("connection", (socket) => {
+  const headers = socket.client.request.headers;
+  require("./routes/sockets")(socket);
+});
+module.exports.socketio = io;
+
 app.use("/api", cookieParser(), bodyParser.json(), require("./routes/api"));
 
 http.listen(SERVER_PORT, () => {
   console.log("Listening on %s...", SERVER_PORT);
 });
-
-io.on("connection", (socket) => {
-  const headers = socket.client.request.headers;
-  require("./routes/sockets")(socket);
-});
-
-module.exports.socketio = io;

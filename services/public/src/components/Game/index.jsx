@@ -18,7 +18,7 @@ const Game = ({ history }) => {
     screenName: null,
     host: false,
     gameName: null,
-    blackCard: {},
+    blackCard: { text: "Some text", pick: 1 },
     whiteCards: [],
     playedCards: [],
     selectedWinner: [],
@@ -26,6 +26,10 @@ const Game = ({ history }) => {
     showBlackCard: false,
     gameState: "IDLE",
   });
+
+  const adjustParam = (param, value) => {
+    setGameParams((prev) => ({ ...prev, [param]: value }));
+  };
 
   useEffect(() => {
     if (!gameParams.id) {
@@ -58,6 +62,10 @@ const Game = ({ history }) => {
       socket.emit("GameData", { gameID });
       socket.on("GameData", (data) => {
         setGameParams((prev) => ({ ...prev, ...data }));
+      });
+      socket.emit("JoinGame", { gameID });
+      socket.on("BLACK_CARD_VISIBLE", (data) => {
+        adjustParam("showBlackCard", data);
       });
     }
   }, [gameParams.gameID]);

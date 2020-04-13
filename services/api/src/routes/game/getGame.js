@@ -26,7 +26,6 @@ const emitGameById = (socket) => {
   socket.on("GameData", () => {
     const { cookie } = socket.client.request.headers;
     const c = cookieParse(cookie);
-    console.log(c);
     if (c && c["token"]) {
       try {
         const payload = jwt.verifyToken(c["token"]);
@@ -38,6 +37,26 @@ const emitGameById = (socket) => {
               gameName: name,
               ...gameData,
             });
+          }
+        });
+      } catch (error) {
+        throw new Error(error);
+      }
+    }
+  });
+};
+
+const joinGameSocket = (socket) => {
+  socket.on("JoinGame", () => {
+    const { cookie } = socket.client.request.headers;
+    const c = cookieParse(cookie);
+    if (c && c["token"]) {
+      try {
+        const payload = jwt.verifyToken(c["token"]);
+        fetchGameById(payload.gameID).then((game) => {
+          if (game) {
+            console.log(`[${payload.name}]: Joined Game ${game._id}.`);
+            socket.join(game._id);
           }
         });
       } catch (error) {
@@ -76,4 +95,5 @@ const getGameDetails = router.get("/details", async (req, res, next) => {
 
 module.exports = getGameDetails;
 module.exports.emitById = emitGameById;
+module.exports.joinGameSocket = joinGameSocket;
 module.exports.fetchGameById = fetchGameById;
