@@ -4,11 +4,20 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
 const app = express();
+const http = require("http").createServer(app);
+const io = require("socket.io")(http);
 
 const { SERVER_PORT } = process.env;
 
 app.use("/api", cookieParser(), bodyParser.json(), require("./routes/api"));
 
-app.listen(SERVER_PORT, () => {
+http.listen(SERVER_PORT, () => {
   console.log("Listening on %s...", SERVER_PORT);
 });
+
+io.on("connection", (socket) => {
+  const headers = socket.client.request.headers;
+  require("./routes/sockets")(socket);
+});
+
+module.exports.socketio = io;

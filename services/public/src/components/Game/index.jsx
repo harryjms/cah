@@ -1,62 +1,65 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Rail from "../Rail";
 import Card from "../Card";
 import { withRouter } from "react-router-dom";
-import CardStack from "../CardStack";
+import Loading from "../Loading";
+import PlayedCards from "./PlayedCards";
+import axios from "axios";
+import socketIOClient from "socket.io-client";
+import { useCookies } from "react-cookie";
 
 const Game = ({ match }) => {
-  const { gameID } = match.params;
-  const [hideCard, setHideCard] = useState(false);
-  const [blackCard, setBlackCard] = useState({
-    text: "I got 99 problems but _ ain't one.",
-    pick: 2,
-  });
-  const [spread, setSpread] = useState(null);
-  const [whiteCards, setWhiteCards] = useState(["Dick envy"]);
-  const [playedCards, setPlayedCards] = useState([
-    ["Dick envy", "A gaping vagina"],
-    ["Dick envy", "A gaping vagina"],
-  ]);
+  const { gameID } = useCookies();
 
-  const handleSpreadStack = (i) => {
-    if (spread !== i) {
-      setSpread(i);
-    } else {
-      setSpread(null);
+  const [gameParams, setGameParams] = useState({
+    isHost: false,
+    blackCard: {},
+    whiteCards: [],
+    playedCards: [],
+    selectedWinner: [],
+    players: [],
+    showBlackCard: false,
+    gameState: "IDLE",
+  });
+
+  useEffect(() => {
+    let socket;
+    console.log(gameID);
+    if (gameID) {
+      socket = socketIOClient("/");
+      if (gameID !== gameParams._id) {
+        socket.emit("GameData", { gameID });
+      }
+      socket.on("GameData", (data) => setGameParams(data));
+    }
+  }, [gameID]);
+
+  const deck = () => {
+    const { gameState, isHost } = gameParams;
+    switch (gameState) {
+      case "IDLE":
+        return <Loading>Waiting for game to begin...</Loading>;
+      case "READING":
+        return <PlayedCards cards={gameParams.playedCards} />;
+      case "SELECTING":
+        return null;
     }
   };
 
   return (
     <>
       <Rail>
-        <Card colour="black" hideValue={hideCard} pick={blackCard.pick}>
-          {blackCard.text}
+        <Card
+          colour="black"
+          hideValue={!gameParams.showBlackCard}
+          pick={gameParams.blackCard.pick}
+        >
+          {gameParams.blackCard.text}
         </Card>
-        {playedCards.map((card, i) => {
-          if (Array.isArray(card)) {
-            return (
-              <CardStack
-                key={`stack-${i}`}
-                spread={spread === i}
-                onClick={() => handleSpreadStack(i)}
-              >
-                {card.map((c) => (
-                  <Card colour="white" key={c}>
-                    {c}
-                  </Card>
-                ))}
-              </CardStack>
-            );
-          }
-          return (
-            <Card colour="white" key={card}>
-              {card}
-            </Card>
-          );
-        })}
+        {deck()}
       </Rail>
       <Rail selectable>
-        {whiteCards.map((card) => (
+        {gameParams.whiteCards.map((card) => (
           <Card colour="white" key={card}>
             {card}
           </Card>

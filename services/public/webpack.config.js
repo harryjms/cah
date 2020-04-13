@@ -16,7 +16,9 @@ module.exports = {
       { test: /.gif$/, loader: "file-loader", options: { publicPath: "/" } },
     ],
   },
-  plugins: [new HTMLWebpackPlugin({ template: "./src/index.html" })],
+  plugins: [
+    new HTMLWebpackPlugin({ template: "./src/index.html", inject: false }),
+  ],
   resolve: {
     extensions: [".js", ".jsx"],
   },
@@ -24,6 +26,7 @@ module.exports = {
     host: "0.0.0.0",
     proxy: {
       "/api": "http://localhost:3000",
+      "/socket.io": "http://localhost:3000",
     },
     historyApiFallback: true,
   },

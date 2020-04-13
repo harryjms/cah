@@ -100,4 +100,7 @@ const db = () => mongo().then((db) => db.collection("games"));
 //     .catch(next);
 // });
 
-module.exports = router.use("/game", [require("./newGame")]);
+module.exports = router.use("/game", [
+  require("./newGame"),
+  require("./getGame"),
+]);

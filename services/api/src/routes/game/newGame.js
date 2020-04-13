@@ -12,6 +12,12 @@ const insertGame = (screenName, gameName) => {
       players: [{ screenName, state: "IDLE" }],
       created: moment.utc().toISOString(),
       gameState: "IDLE",
+      blackCard: {},
+      whiteCards: [],
+      playedCards: [],
+      previousRounds: [],
+      selectedWinner: [],
+      showBlackCard: false,
     })
   );
 };
