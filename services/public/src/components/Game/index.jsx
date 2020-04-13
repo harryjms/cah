@@ -50,7 +50,12 @@ const Game = ({ match }) => {
 
   return (
     <>
-      {showInvite && <Invite code={match.params.gameID} />}
+      {showInvite && (
+        <Invite
+          code={match.params.gameID}
+          onDismiss={() => setShowInvite(false)}
+        />
+      )}
       <button onClick={() => setShowInvite(true)}>Invite</button>
       <Rail>
         <Card
