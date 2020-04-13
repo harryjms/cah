@@ -40,19 +40,60 @@ const gameHasPlayer = (game, name) => {
     .then((result) => (result ? true : false));
 };
 
-const joinGame = router.post("/join", (req, res, next) => {
-  const { gameID, name } = req.body;
-  gameHasPlayer().then((result) => {
-    if (result) {
-      res.sendStatus(200);
+const gameAddPlayer = (game, name) => {
+  return fetchGameById(game).then((gameData) => {
+    if (!gameData.players.includes(name)) {
+      const newPlayers = [...gameData.players, name];
+      return db().then((col) =>
+        col.findOneAndUpdate(
+          { _id: new ObjectID(game) },
+          { $set: { players: newPlayers } }
+        )
+      );
     } else {
-      fetchGameById(gameID).then((game) => {
-        const newPlayers = [...game.players];
-        newPlayers.push(name);
-        res.sendStatus(200);
-      });
+      return true;
     }
   });
+};
+
+const gameRemovePlayer = (game, name) => {
+  return fetchGameById(game).then((gameData) => {
+    if (gameData.players.includes(name)) {
+      const newPlayers = [...gameData.players];
+      newPlayers.splice(newPlayers.indexOf(name), 1);
+
+      return db().then((col) =>
+        col.findOneAndUpdate(
+          { _id: new ObjectID(game) },
+          { $set: { players: newPlayers } }
+        )
+      );
+    } else {
+      return true;
+    }
+  });
+};
+
+const joinGame = router.post("/join", (req, res, next) => {
+  const { gameID, name } = req.body;
+  gameAddPlayer(gameID, name)
+    .then(() => {
+      res.cookie("screenName", name);
+      res.cookie("gameID", gameID);
+      res.sendStatus(200);
+    })
+    .catch(next);
 });
 
-module.exports = router.use("/game", [initGame, getGame]);
+const leaveGame = router.post("/leave", (req, res, next) => {
+  const { gameID, name } = req.body;
+  gameRemovePlayer(gameID, name)
+    .then(() => {
+      res.cookie("screenName", 0, { maxAge: 0 });
+      res.cookie("gameID", 0, { maxAge: 0 });
+      res.sendStatus(200);
+    })
+    .catch(next);
+});
+
+module.exports = router.use("/game", [initGame, getGame, joinGame, leaveGame]);
