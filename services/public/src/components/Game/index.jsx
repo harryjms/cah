@@ -8,6 +8,7 @@ import axios from "axios";
 import socketIOClient from "socket.io-client";
 import { useCookies } from "react-cookie";
 import Invite from "../Invite";
+import Notification from "../Notification";
 
 import GameBar from "./GameBar";
 
@@ -15,6 +16,7 @@ const Game = ({ history }) => {
   const [{ token }] = useCookies();
   const [showInvite, setShowInvite] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
   const [gameParams, setGameParams] = useState({
     gameID: null,
     screenName: null,
@@ -43,7 +45,7 @@ const Game = ({ history }) => {
             setLoading(false);
           })
           .catch((err) => {
-            if (err.response.status === 403) {
+            if (err.response.status === 403 || err.response.status === 404) {
               history.push("/");
             } else {
               setLoading(false);
@@ -66,8 +68,8 @@ const Game = ({ history }) => {
         setGameParams((prev) => ({ ...prev, ...data }));
       });
       socket.emit("JoinGame", { gameID });
-      socket.on("BLACK_CARD_VISIBLE", (data) => {
-        adjustParam("showBlackCard", data);
+      socket.on("NOTIFICATION", (data) => {
+        setNotifications((prev) => [...prev, data]);
       });
     }
   }, [gameParams.gameID]);
@@ -110,6 +112,11 @@ const Game = ({ history }) => {
           </Card>
         ))}
       </Rail>
+      {notifications.map((not) => (
+        <Notification key={not} show>
+          {not}
+        </Notification>
+      ))}
     </>
   );
 };

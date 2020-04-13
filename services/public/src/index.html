@@ -27,6 +27,16 @@
         display: flex;
       }
 
+      #notification {
+        color: white;
+        right: 10px;
+        width: 300px;
+        bottom: 10px;
+        opacity: 1;
+        position: absolute;
+        max-width: 100%;
+      }
+
       #fs-load.show {
         opacity: 1;
         pointer-events: all;
@@ -37,6 +47,7 @@
   <body>
     <div id="root">Loading...</div>
     <div id="fs-load"></div>
+    <div id="notification"></div>
     <script src="/bundle.js"></script>
   </body>
 </html>

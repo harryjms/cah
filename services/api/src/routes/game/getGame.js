@@ -56,6 +56,9 @@ const joinGameSocket = (socket) => {
         fetchGameById(payload.gameID).then((game) => {
           if (game) {
             console.log(`[${payload.name}]: Joined Game ${game._id}.`);
+            socket
+              .to(game._id)
+              .emit("NOTIFICATION", `${payload.name} joined the game.`);
             socket.join(game._id);
           }
         });
@@ -80,13 +83,16 @@ const getGameDetails = router.get("/details", async (req, res, next) => {
         isHost: gameData.host === screenName,
       });
     } else {
-      throw new Error("GAME_NOT_FOUND");
+      const err = new Error();
+      err.name = "GAME_NOT_FOUND";
+      err.message = "The request game could not be found.";
+      throw err;
     }
   } catch (error) {
     if (error.name === "JsonWebTokenError") {
       return res.sendStatus(403);
     }
-    if (error.message === "Error: GAME_NOT_FOUND") {
+    if (error.name === "GAME_NOT_FOUND") {
       return res.sendStatus(404);
     }
     next(error);
