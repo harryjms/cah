@@ -4,32 +4,35 @@ import { createUseStyles } from "react-jss";
 const RailContext = createContext();
 export const useRail = () => useContext(RailContext);
 
-const useStyles = createUseStyles({
+const useStyles = createUseStyles((theme) => ({
   Rail: {
     display: "flex",
-    marginBottom: 20,
+
     overflowX: "auto",
     whiteSpace: "nowrap",
+    padding: 20,
   },
-});
+}));
 
-const Rail = ({ children }) => {
+const Rail = ({ children, selectable = false }) => {
   const [selected, setSelected] = useState([]);
   const classes = useStyles();
 
   const toggleSelected = (card) => {
-    const newArray = [...selected];
-    if (selected.includes(card)) {
-      newArray.splice(newArray.indexOf(card), 1);
-    } else {
-      newArray.push(card);
+    if (selectable) {
+      const newArray = [...selected];
+      if (selected.includes(card)) {
+        newArray.splice(newArray.indexOf(card), 1);
+      } else {
+        newArray.push(card);
+      }
+      setSelected(newArray);
     }
-    setSelected(newArray);
   };
 
   return (
     <div className={classes.Rail}>
-      <RailContext.Provider value={{ selected, toggleSelected }}>
+      <RailContext.Provider value={{ selected, toggleSelected, selectable }}>
         {children}
       </RailContext.Provider>
     </div>

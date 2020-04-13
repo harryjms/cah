@@ -2,28 +2,58 @@ import React from "react";
 import { createUseStyles } from "react-jss";
 import { useRail } from "../Rail";
 
-const useStyles = createUseStyles({
+const useStyles = createUseStyles((theme) => ({
   card: {
-    display: "flex",
-    flexFlow: "column",
+    position: "relative",
     minWidth: 200,
     width: 200,
     height: 296.2962962,
-    padding: 10,
     fontWeight: "bold",
     fontSize: "16pt",
-    borderRadius: 10,
-    borderWidth: 2,
-    borderStyle: "solid",
-    borderColor: "transparent",
     whiteSpace: "normal",
+    position: "relative",
+    perspective: 1000,
+    [theme.mediaQuery.iPhone8]: {
+      width: 150,
+      minWidth: 150,
+      height: 222.22222215,
+      fontSize: "13pt",
+    },
     "& img": {
       display: "block",
       opacity: 0,
     },
-    position: "relative",
     "&:not(:first-child)": {
       marginLeft: 20,
+    },
+    "& .inner": {
+      position: "relative",
+      width: "100%",
+      height: "100%",
+      transition: "transform 0.8s",
+      transformStyle: "preserve-3d",
+    },
+    "&.flip": {
+      "& .inner": {
+        transform: "rotateY(180deg)",
+      },
+    },
+    "& .front, & .back": {
+      position: "absolute",
+      width: "100%",
+      height: "100%",
+      backfaceVisibility: "hidden",
+      display: "flex",
+      flexFlow: "column",
+      padding: 10,
+      borderRadius: 10,
+      borderWidth: 2,
+      borderStyle: "solid",
+      borderColor: "transparent",
+    },
+
+    "& .back": {
+      transform: "rotateY(180deg)",
     },
   },
   content: {
@@ -41,20 +71,29 @@ const useStyles = createUseStyles({
     },
   },
   black: {
-    backgroundColor: "black",
-    color: "white",
+    "& .front, & .back": {
+      backgroundColor: "black",
+      color: "white",
+    },
   },
-  white: {
-    backgroundColor: "white",
-  },
+  white: (props) => ({
+    "& .front, & .back": {
+      backgroundColor: "white",
+    },
+    "& .front": {
+      cursor: props.selectable && "pointer",
+    },
+  }),
   selected: {
-    borderColor: "rgba(10,132,255)",
+    "& .front, & .back": {
+      borderColor: "rgba(10,132,255)",
+    },
   },
-});
+}));
 
 const Card = ({ children, colour, pick = 1, hideValue = false }) => {
-  const classes = useStyles();
-  const { selected, toggleSelected } = useRail();
+  const { selected, toggleSelected, selectable } = useRail();
+  const classes = useStyles({ selectable });
 
   const handleSelect = () => {
     if (colour !== "black") {
@@ -68,17 +107,23 @@ const Card = ({ children, colour, pick = 1, hideValue = false }) => {
         classes.card,
         colour === "black" ? classes.black : classes.white,
         selected.includes(children) && classes.selected,
+        hideValue && "flip",
       ]
         .filter((a) => a)
         .join(" ")}
       onClick={handleSelect}
     >
-      <div className={classes.content}>{children}</div>
-      <div className={classes.footer}>
-        <div className="name">Cards Against</div>
-        {pick > 1 && colour === "black" && (
-          <div className="pick">Pick {pick}</div>
-        )}
+      <div className="inner">
+        <div className="front">
+          <div className={classes.content}>{children}</div>
+          <div className={classes.footer}>
+            <div className="name">Cards Against</div>
+            {pick > 1 && colour === "black" && (
+              <div className="pick">Pick {pick}</div>
+            )}
+          </div>
+        </div>
+        <div className="back">Cards Against</div>
       </div>
     </div>
   );

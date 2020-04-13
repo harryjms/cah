@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { withRouter } from "react-router-dom";
 import axios from "axios";
-import loaderGif from "../../assets/images/loader.gif";
 
 import { HStack } from "../Stack";
 import TextField from "../TextField";
@@ -30,7 +29,7 @@ const NewGame = ({ history }) => {
     axios
       .post("/api/game/new", { screenName, gameName })
       .then(({ data: game }) => {
-        console.log(game);
+        history.push("/game/" + game.gameID);
       })
       .catch((err) => {
         setError(err);
