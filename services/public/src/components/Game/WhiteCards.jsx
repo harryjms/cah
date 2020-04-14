@@ -3,8 +3,8 @@ import { useGameContext } from "./index";
 import Rail from "../Layout/Rail";
 import Card from "../Layout/Card";
 const WhiteCards = () => {
-  const { game, player } = useGameContext();
-  const [selected, setSelected] = useState([]);
+  const { game, player, handSelection, handleHandSelection } = useGameContext();
+
   if (!player || !game) {
     return null;
   }
@@ -15,26 +15,14 @@ const WhiteCards = () => {
     },
   } = game;
 
-  const handleSelect = (card) => {
-    let newArray = [...selected];
-    if (selected.includes(card)) {
-      newArray.splice(selected.indexOf(card), 1);
-    } else if (pick === 1) {
-      newArray = [card];
-    } else if (selected.length < pick) {
-      newArray.push(card);
-    }
-    setSelected(newArray);
-  };
-
   return (
     <Rail>
       {player.hand.map((card) => (
         <Card
           key={card}
           colour="white"
-          onClick={() => handleSelect(card)}
-          selected={selected.includes(card)}
+          onClick={() => handleHandSelection(card)}
+          selected={handSelection.includes(card)}
         >
           {card}
         </Card>
