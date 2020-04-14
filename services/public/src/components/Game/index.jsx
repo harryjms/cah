@@ -15,16 +15,15 @@ import Socket from "../../helpers/socket";
 
 const Game = ({ history }) => {
   // State: The Game
-  const [player, setPlayer] = useState(null);
+  const [player, setPlayer] = useState({});
   const [game, setGame] = useState(null);
   const [whiteCards, setWhiteCards] = useState([]);
+  const isHost = game && player && game.host === player.name;
 
   // States: UI
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [connectionLost, setConnectionLost] = useState(false);
-
-  let socket;
 
   useEffect(() => {
     const getPlayer = async () => {
@@ -36,14 +35,11 @@ const Game = ({ history }) => {
       }
     };
     getPlayer();
-
-    return () => {
-      socket = null;
-    };
   }, []);
 
   useEffect(() => {
-    if (player && player.gameID) {
+    let socket;
+    if (player && player.game) {
       socket = new Socket();
       socket.on("disconnect", handleDisconnection);
       socket.on("reconnect", () => {
@@ -53,18 +49,25 @@ const Game = ({ history }) => {
 
       socket.on("GameData", handleGameData);
       socket.on("Notification", handleNotification);
-      socket.on("WHITE_CARD", handleWhiteCard);
+      socket.on("PlayerData", handlePlayerData);
 
       socket.emit("GetGame");
     }
-  }, [player]);
+    return () => {
+      socket = null;
+    };
+  }, [player.game]);
 
   const handleGameData = (data) => {
-    console.log(data);
     setGame(data);
+    console.log("GameData", data);
     if (loading) {
       setLoading(false);
     }
+  };
+
+  const handlePlayerData = (data) => {
+    setPlayer(data);
   };
 
   const handleNotification = (data) => {
@@ -85,10 +88,6 @@ const Game = ({ history }) => {
     });
   };
 
-  const handleWhiteCard = (data) => {
-    setWhiteCards((prev) => [...prev, ...data]);
-  };
-
   const deck = () => {
     const { gameState, host } = game;
     switch (gameState) {
@@ -99,33 +98,38 @@ const Game = ({ history }) => {
     }
   };
 
-  return loading ? (
-    <Loading fullScreen>Loading Game...</Loading>
-  ) : (
+  return (
     <>
-      <GameBar game={game} player={player} actions={{ handleStartGame }} />
-      <Rail>
-        <Card
-          colour="black"
-          hideValue={!game.currentRound.showBlack}
-          pick={game.currentRound.blackCard.pick}
-        >
-          {game.currentRound.blackCard.text}
-        </Card>
-        {deck()}
-      </Rail>
-      <Rail selectable>
-        {whiteCards.map((card) => (
-          <Card colour="white" key={card}>
-            {card}
-          </Card>
-        ))}
-      </Rail>
-      {notifications.map((not) => (
-        <Notification key={not} show>
-          {not}
-        </Notification>
-      ))}
+      {loading && <Loading fullScreen>Loading Game...</Loading>}
+      {game && (
+        <>
+          <GameBar game={game} player={player} actions={{ handleStartGame }} />
+          <Rail>
+            <Card
+              colour="black"
+              hideValue={!game.currentRound.showBlack}
+              pick={game.currentRound.blackCard.pick}
+            >
+              {game.currentRound.blackCard.text}
+            </Card>
+            {deck()}
+          </Rail>
+          {player.hand && (
+            <Rail selectable>
+              {player.hand.map((card) => (
+                <Card colour="white" key={card}>
+                  {card}
+                </Card>
+              ))}
+            </Rail>
+          )}
+          {notifications.map((not) => (
+            <Notification key={not} show>
+              {not}
+            </Notification>
+          ))}
+        </>
+      )}
       {connectionLost && (
         <Loading fullScreen>Reconnecting to server...</Loading>
       )}

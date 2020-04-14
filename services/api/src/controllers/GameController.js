@@ -146,6 +146,15 @@ class GameController extends CAHController {
         throw err;
       }
 
+      if (game.gameState !== "IDLE") {
+        let err = new Error();
+        err.statusCode = 423;
+        err.name = "GAME_IN_PROGRESS";
+        err.message =
+          "Sorry, you are not able to join this game as it has already begun.";
+        throw err;
+      }
+
       const player = await Player.findPlayer(screenName, gameID);
       if (player) {
         let err = new Error();
@@ -155,29 +164,10 @@ class GameController extends CAHController {
         throw err;
       }
 
-      await Player.insertPlayer(screenName, gameID);
+      await Player.insertPlayer(screenName, gameID, "IDLE");
       const token = Player.createToken(game, screenName);
       this.emitPlayerJoined(screenName, gameID);
       res.cookie("token", token);
-      res.sendStatus(200);
-    } catch (err) {
-      next(err);
-    }
-  };
-
-  /**
-   * POST /api/game/leave
-   */
-  postLeaveGame = async (req, res, next) => {
-    const {
-      player: { gameID, name },
-    } = req;
-
-    const Player = new PlayerController();
-    try {
-      await Player.removePlayer(name, gameID);
-      this.emitPlayerLeft(name, gameID);
-      res.cookie("token", 0, { maxAge: 0 });
       res.sendStatus(200);
     } catch (err) {
       next(err);
@@ -222,21 +212,33 @@ class GameController extends CAHController {
 
       const Player = new PlayerController();
       await Player.registerSocket(socket.id, screenName, gameID);
-
+      const player = await Player.findPlayer(screenName, gameID);
+      this.emitPlayerJoined(screenName, gameID);
       socket.emit("GameData", game);
+    });
+
+    socket.on("disconnect", async () => {
+      const Player = new PlayerController();
+      const { name, gameID } = socket.player;
+      try {
+        await Player.leaveGame(name, gameID);
+        this.emitPlayerLeft(name, gameID);
+      } catch (err) {
+        next(err);
+      }
     });
   };
 
   emitPlayerLeft = (screenName, gameID) => {
     this.logInfo(`[${screenName}]: Left the game ${gameID}`);
-    this.io.to(gameID).emit("NOTIFICATION", `${screenName} has left the game`);
+    this.io.to(gameID).emit("Notification", `${screenName} has left the game`);
   };
 
   emitPlayerJoined = (screenName, gameID) => {
     this.logInfo(`[${screenName}]: Joined the game ${gameID}`);
     this.io
       .to(gameID)
-      .emit("NOTIFICATION", `${screenName} has joined the game`);
+      .emit("Notification", `${screenName} has joined the game`);
   };
 
   emitGameUpdate = async (gameID) => {
@@ -347,7 +349,7 @@ class GameController extends CAHController {
       const players = await (await Player.fetchPlayersInGame(gameID)).toArray();
       const hands = this.drawInitial10(combinedPack, players.length);
       players.forEach((player, i) => {
-        this.io.to(player.socketID).emit("WHITE_CARD", hands[i]);
+        Player.updateHand(player.name, gameID, hands[i]);
       });
 
       // 4. Commit to DB and send update to clients
