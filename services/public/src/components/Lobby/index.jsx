@@ -2,9 +2,9 @@ import React, { useState } from "react";
 import { withRouter } from "react-router-dom";
 import { createUseStyles } from "react-jss";
 import axios from "axios";
-import { HStack } from "../Stack";
-import TextField from "../TextField";
-import Button from "../Button";
+import { HStack } from "../Layout/Stack";
+import TextField from "../Layout/TextField";
+import Button from "../Layout/Button";
 import loadingGif from "../../assets/images/loader.gif";
 import { useCookies } from "react-cookie";
 

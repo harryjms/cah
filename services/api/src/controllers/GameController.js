@@ -72,9 +72,8 @@ class GameController extends CAHController {
    * GET /api/game
    */
   getGame = async (req, res, next) => {
-    const { gameID } = req.params;
+    const { gameID } = req.player;
     try {
-      console.log(gameID);
       if (gameID) {
         const game = await this.findGame(gameID);
         if (game && Object.keys(game).length > 0) {
@@ -148,6 +147,14 @@ class GameController extends CAHController {
   ///////////////////////
   /// Socket Handlers ///
   ///////////////////////
+
+  socketListeners = (socket) => {
+    socket.on("GetGame", async () => {
+      const { gameID } = socket.player;
+      const game = await this.findGame(gameID);
+      socket.emit("GameData", game);
+    });
+  };
 
   emitPlayerLeft = (screenName, gameID) => {
     this.logInfo(`[${screenName}]: Left the game ${gameID}`);

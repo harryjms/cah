@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const jwt = require("../helpers/jwt");
 const GameController = require("../controllers/GameController");
+const PlayerController = require("../controllers/PlayerController");
 
 const handleError = (err, req, res, next) => {
   if (err) {
@@ -16,7 +17,7 @@ const parseToken = (req, res, next) => {
     if (req.player) {
       next();
     } else {
-      res.sendStatus(200);
+      res.sendStatus(403);
     }
   } catch (err) {
     next(err);
@@ -26,7 +27,7 @@ const parseToken = (req, res, next) => {
 module.exports = router.use(
   "/",
   router
-    .get("/game/:gameID?", new GameController().getGame)
+    .get("/me", parseToken, new PlayerController().getMyDetails)
     .post("/game", new GameController().postNewGame)
     .post("/game/join", new GameController().postJoinGame)
     .post("/game/leave", parseToken, new GameController().postLeaveGame),

@@ -40,6 +40,19 @@ class PlayerController extends CAHController {
       isHost: gameData.host === screenName,
     });
   };
+
+  /////////////////////
+  /// REST Endpoint ///
+  /////////////////////
+
+  getMyDetails = (req, res, next) => {
+    try {
+      const { player } = req;
+      res.json(player);
+    } catch (err) {
+      next(err);
+    }
+  };
 }
 
 module.exports = PlayerController;

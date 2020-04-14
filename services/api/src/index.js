@@ -9,12 +9,17 @@ const http = require("http").createServer(app);
 const io = require("socket.io")(http);
 module.exports.socketio = io;
 
+const GameController = require("./controllers/GameController");
 const { parseFromSocket } = require("./helpers/parseCookie");
 const { SERVER_PORT } = process.env;
 
 io.on("connection", (socket) => {
   const player = parseFromSocket(socket);
-  socket.player = player || {};
+
+  if (player) {
+    socket.player = player;
+    new GameController().socketListeners(socket);
+  }
 });
 
 app.use("/api", cookieParser(), bodyParser.json(), require("./routes/api"));

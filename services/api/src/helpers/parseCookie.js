@@ -1,15 +1,9 @@
 const jwt = require("./jwt");
-const cookieParse = (cookies) =>
-  cookies &&
-  cookies
-    .split("; ")
-    .map((cookie) => cookie.split("="))
-    .map((cookie) => ({ [cookie[0]]: cookie[1] }))[0];
-module.exports = cookieParse;
+const cookie = require("cookie");
+module.exports = cookie.parse;
 
 module.exports.parseFromSocket = (socket) => {
-  const { cookie } = socket.client.request.headers;
-  const c = cookieParse(cookie);
+  const c = cookie.parse(socket.client.request.headers.cookie);
   if (c && c["token"]) {
     try {
       const payload = jwt.verifyToken(c["token"]);

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
-import Button from "../Button";
-import Loading from "../Loading";
-import Invite from "../Invite";
+import Button from "../Layout/Button";
+import Loading from "../Layout/Loading";
+import Invite from "../Layout/Invite";
 
 const useStyles = createUseStyles({
   GameBar: {
@@ -33,9 +33,9 @@ const GameBar = ({ game }) => {
   };
   return (
     <div className={classes.GameBar}>
-      {showInvite && <Invite code={game.gameID} onDismiss={handleInvite} />}
+      {showInvite && <Invite code={game._id} onDismiss={handleInvite} />}
       <div className="content">
-        <h2>{game.gameName}</h2>
+        <h2>{game.name}</h2>
         <Button style={{ width: "auto" }} onClick={handleInvite}>
           Invite
         </Button>

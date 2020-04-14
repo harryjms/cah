@@ -1,7 +1,7 @@
 import React, { useEffect } from "react";
 import { createPortal } from "react-dom";
 import Title from "../Title";
-import gif from "../../assets/images/loader.gif";
+import gif from "../../../assets/images/loader.gif";
 
 const FSLoading = ({ children }) => {
   const container = document.getElementById("fs-load");

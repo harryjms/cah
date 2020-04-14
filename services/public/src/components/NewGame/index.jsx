@@ -2,11 +2,11 @@ import React, { useEffect, useState } from "react";
 import { withRouter } from "react-router-dom";
 import axios from "axios";
 
-import { HStack } from "../Stack";
-import TextField from "../TextField";
-import Button from "../Button";
-import Banner from "../Banner";
-import Loading from "../Loading";
+import { HStack } from "../Layout/Stack";
+import TextField from "../Layout/TextField";
+import Button from "../Layout/Button";
+import Banner from "../Layout/Banner";
+import Loading from "../Layout/Loading";
 
 const NewGame = ({ history }) => {
   const [gameName, setGameName] = useState("");
@@ -27,8 +27,8 @@ const NewGame = ({ history }) => {
     setLoading(true);
     setError(null);
     axios
-      .post("/api/game/new", { screenName, gameName })
-      .then(({ data: game }) => {
+      .post("/api/game", { screenName, gameName })
+      .then(({ data: gameID }) => {
         history.push("/game");
       })
       .catch((err) => {

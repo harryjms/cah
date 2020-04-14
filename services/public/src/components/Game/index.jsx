@@ -1,91 +1,76 @@
 import React, { useState, useEffect } from "react";
-import Rail from "../Rail";
-import Card from "../Card";
+import Rail from "../Layout/Rail";
+import Card from "../Layout/Card";
 import { withRouter } from "react-router-dom";
-import Loading from "../Loading";
+import Loading from "../Layout/Loading";
 import PlayedCards from "./PlayedCards";
 import axios from "axios";
 import socketIOClient from "socket.io-client";
 import { useCookies } from "react-cookie";
-import Invite from "../Invite";
-import Notification from "../Notification";
+import Invite from "../Layout/Invite";
+import Notification from "../Layout/Notification";
 
 import GameBar from "./GameBar";
 
 const Game = ({ history }) => {
-  const [{ token }] = useCookies();
-  const [showInvite, setShowInvite] = useState(false);
+  // State: The Game
+  const [player, setPlayer] = useState(null);
+  const [game, setGame] = useState(null);
+
+  // States: UI
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [connectionLost, setConnectionLost] = useState(false);
-  const [gameParams, setGameParams] = useState({
-    gameID: null,
-    screenName: null,
-    host: false,
-    gameName: null,
-    blackCard: { text: "Some text", pick: 1 },
-    whiteCards: [],
-    playedCards: [],
-    selectedWinner: [],
-    players: ["scratchedguitar", "lampy", "donky"],
-    showBlackCard: false,
-    gameState: "IDLE",
-  });
-
-  const adjustParam = (param, value) => {
-    setGameParams((prev) => ({ ...prev, [param]: value }));
-  };
 
   useEffect(() => {
-    if (!gameParams.id) {
-      if (token) {
-        axios
-          .get("/api/game/details")
-          .then(({ data }) => {
-            setGameParams(data);
-            setLoading(false);
-          })
-          .catch((err) => {
-            if (err.response.status === 403 || err.response.status === 404) {
-              history.push("/");
-            } else {
-              setLoading(false);
-              throw new Error(err);
-            }
-          });
-      } else {
-        history.push("/");
+    const getPlayer = async () => {
+      try {
+        const { data } = await axios.get("/api/me");
+        setPlayer(data);
+      } catch (err) {
+        throw new Error(err);
       }
-    }
+    };
+    getPlayer();
   }, []);
 
   useEffect(() => {
-    let socket;
-    const { gameID } = gameParams;
-    if (gameID) {
-      socket = socketIOClient("/");
-      socket.emit("GameData", { gameID });
-      socket.on("GameData", (data) => {
-        setGameParams((prev) => ({ ...prev, ...data }));
-      });
-      socket.emit("JoinGame", { gameID });
-      socket.on("NOTIFICATION", (data) => {
-        setNotifications((prev) => [...prev, data]);
-      });
-      socket.on("disconnect", () => {
-        setConnectionLost(true);
-      });
-      socket.on("reconnect", () => {
-        setConnectionLost(false);
-      });
+    if (player && player.gameID) {
+      const socket = socketIOClient("/");
+      socket.on("disconnect", handleDisconnection);
+      socket.on("reconnect", handleReconnection);
+
+      socket.on("GameData", handleGameData);
+      socket.on("Notification", handleNotification);
+
+      socket.emit("GetGame");
     }
-  }, [gameParams.gameID]);
+  }, [player]);
+
+  const handleGameData = (data) => {
+    setGame(data);
+    if (loading) {
+      setLoading(false);
+    }
+  };
+
+  const handleNotification = (data) => {
+    setNotifications((prev) => [...prev, data]);
+  };
+
+  const handleDisconnection = () => {
+    setConnectionLost(true);
+  };
+
+  const handleReconnection = () => {
+    setConnectionLost(false);
+  };
 
   const deck = () => {
-    const { gameState, host } = gameParams;
+    const { gameState, host } = game;
     switch (gameState) {
       case "READING":
-        return <PlayedCards cards={gameParams.playedCards} />;
+        return <PlayedCards cards={game.currentRound.whiteCards} />;
       case "SELECTING":
         return null;
     }
@@ -95,25 +80,19 @@ const Game = ({ history }) => {
     <Loading fullScreen>Loading Game...</Loading>
   ) : (
     <>
-      {showInvite && (
-        <Invite
-          code={gameParams.gameID}
-          onDismiss={() => setShowInvite(false)}
-        />
-      )}
-      <GameBar game={gameParams} />
+      <GameBar game={game} />
       <Rail>
         <Card
           colour="black"
-          hideValue={!gameParams.showBlackCard}
-          pick={gameParams.blackCard.pick}
+          hideValue={!game.currentRound.showBlack}
+          pick={game.currentRound.blackCard.pick}
         >
-          {gameParams.blackCard.text}
+          {game.currentRound.blackCard.text}
         </Card>
         {deck()}
       </Rail>
       <Rail selectable>
-        {gameParams.whiteCards.map((card) => (
+        {game.currentRound.whiteCards.map((card) => (
           <Card colour="white" key={card}>
             {card}
           </Card>

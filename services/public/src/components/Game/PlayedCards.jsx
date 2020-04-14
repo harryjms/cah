@@ -1,6 +1,6 @@
 import React, { useState } from "react";
-import Card from "../Card";
-import CardStack from "../CardStack";
+import Card from "../Layout/Card";
+import CardStack from "../Layout/CardStack";
 
 const PlayedCards = ({ cards }) => {
   const [spread, setSpread] = useState(null);
