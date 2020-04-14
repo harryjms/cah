@@ -11,6 +11,7 @@ import Invite from "../Layout/Invite";
 import Notification from "../Layout/Notification";
 
 import GameBar from "./GameBar";
+import Socket from "../../helpers/socket";
 
 const Game = ({ history }) => {
   // State: The Game
@@ -22,6 +23,8 @@ const Game = ({ history }) => {
   const [notifications, setNotifications] = useState([]);
   const [connectionLost, setConnectionLost] = useState(false);
 
+  let socket;
+
   useEffect(() => {
     const getPlayer = async () => {
       try {
@@ -32,11 +35,15 @@ const Game = ({ history }) => {
       }
     };
     getPlayer();
+
+    return () => {
+      socket = null;
+    };
   }, []);
 
   useEffect(() => {
     if (player && player.gameID) {
-      const socket = socketIOClient("/");
+      socket = new Socket();
       socket.on("disconnect", handleDisconnection);
       socket.on("reconnect", handleReconnection);
 
@@ -66,6 +73,8 @@ const Game = ({ history }) => {
     setConnectionLost(false);
   };
 
+  const handleStartGame = () => {};
+
   const deck = () => {
     const { gameState, host } = game;
     switch (gameState) {
@@ -80,7 +89,7 @@ const Game = ({ history }) => {
     <Loading fullScreen>Loading Game...</Loading>
   ) : (
     <>
-      <GameBar game={game} />
+      <GameBar game={game} player={player} actions={{ handleStartGame }} />
       <Rail>
         <Card
           colour="black"

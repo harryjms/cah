@@ -1,5 +1,6 @@
 const CAHController = require("./CAHController");
 const PlayerController = require("./PlayerController");
+const PackController = require("./PackController");
 const moment = require("moment").utc;
 
 class GameController extends CAHController {
@@ -17,13 +18,13 @@ class GameController extends CAHController {
     return this.db().then((col) => col.findOne({ _id: this.ObjectID(id) }));
   };
 
-  insertGame = (gameName, host) => {
+  insertGame = (gameName, host, packs = []) => {
     const gameData = {
       host,
       name: gameName,
       created: moment().toISOString(),
       gameState: "IDLE",
-      pack: {},
+      packs,
       currentRound: {
         blackCard: {},
         whiteCards: [],
@@ -51,10 +52,46 @@ class GameController extends CAHController {
    * POST /api/game
    */
   postNewGame = async (req, res, next) => {
-    const { gameName, screenName } = req.body;
+    const { gameName, screenName, packs } = req.body;
     try {
+      if (!gameName || !screenName || !Array.isArray(packs)) {
+        let err = new Error();
+        err.statusCode = 400;
+        err.name = "INVALID_START_REQUEST";
+        if (!gameName) {
+          err.message = "Game name is required";
+        } else if (!screenName) {
+          err.message = "Screen name is required";
+        } else {
+          err.message =
+            "Packs are either not provided or not in the correct format";
+        }
+        throw err;
+      }
+
+      const Pack = new PackController();
+      const packExistance = packs.map((pack) => Pack.exists(pack));
+
+      if (packExistance.includes(false)) {
+        let err = new Error();
+        const missingPacks = packExistance
+          .reduce((aggr, value, key) => {
+            if (!value) {
+              aggr.push(packs[key]);
+            }
+            return aggr;
+          }, [])
+          .join(", ");
+        err.name = "PACK_NOT_FOUND";
+        err.message =
+          "The following packs were requests but cannot be found: " +
+          missingPacks +
+          ".";
+        throw err;
+      }
+
       const Player = new PlayerController();
-      const game = await this.insertGame(gameName, screenName);
+      const game = await this.insertGame(gameName, screenName, packs);
       const player = await Player.insertPlayer(screenName, game._id);
       if (player) {
         const token = Player.createToken(game, screenName);
@@ -144,6 +181,27 @@ class GameController extends CAHController {
     }
   };
 
+  /**
+   * PUT /api/game/start
+   */
+  putStartGame = async (req, res, next) => {
+    const {
+      player: { gameID, isHost },
+    } = req;
+    try {
+      if (!isHost) {
+        let err = new Error();
+        err.statusCode = 403;
+        err.name = "NOT_HOST";
+        err.message =
+          "You are not able to start the game as you are not the host.";
+        throw err;
+      }
+    } catch (err) {
+      next(err);
+    }
+  };
+
   ///////////////////////
   /// Socket Handlers ///
   ///////////////////////
@@ -166,6 +224,31 @@ class GameController extends CAHController {
     this.io
       .to(gameID)
       .emit("NOTIFICATION", `${screenName} has joined the game`);
+  };
+
+  /////////////////
+  /// Utilities ///
+  /////////////////
+
+  startGame = async (gameID) => {
+    try {
+      const game = await this.findGame(gameID);
+      if (!game) {
+        let err = new Error();
+        err.statusCode = 404;
+        err.name = "GAME_NOT_FOUND";
+        err.message`Unable to find game ${gameID}`;
+        throw err;
+      }
+
+      // 1.
+    } catch (err) {
+      if (typeof err === "Error") {
+        throw err;
+      } else {
+        throw new Error(err);
+      }
+    }
   };
 }
 

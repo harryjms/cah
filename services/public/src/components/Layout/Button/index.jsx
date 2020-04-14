@@ -8,6 +8,7 @@ const useStyles = createUseStyles({
     color: "white",
     padding: "8px 16px",
     font: "inherit",
+    fontWeight: "bold",
     borderRadius: 8,
     outline: "none",
     "&:hover:not(:active):not(:disabled)": {

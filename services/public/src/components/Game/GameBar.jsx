@@ -25,7 +25,7 @@ const useStyles = createUseStyles({
   },
 });
 
-const GameBar = ({ game }) => {
+const GameBar = ({ game, player, actions }) => {
   const classes = useStyles();
   const [showInvite, setShowInvite] = useState(false);
   const handleInvite = () => {
@@ -45,6 +45,15 @@ const GameBar = ({ game }) => {
           <Loading>Waiting for game to start...</Loading>
         )}
       </div>
+      {player.isHost && (
+        <div>
+          {game.gameState === "IDLE" ? (
+            <Button onClick={actions.handleStartGame}>Start Game</Button>
+          ) : (
+            <Button>End Game</Button>
+          )}
+        </div>
+      )}
     </div>
   );
 };
