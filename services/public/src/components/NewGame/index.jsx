@@ -27,7 +27,11 @@ const NewGame = ({ history }) => {
     setLoading(true);
     setError(null);
     axios
-      .post("/api/game", { screenName, gameName })
+      .post("/api/game", {
+        screenName,
+        gameName,
+        additionalPacks: ["plymouth"],
+      })
       .then(({ data: gameID }) => {
         history.push("/game");
       })
