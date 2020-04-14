@@ -13,6 +13,7 @@ class CAHController {
     this.mongo = mongo;
     this.jwt = jwt;
     this.io = socketio;
+    this.ObjectID = (id) => new this.mongo.ObjectID(id);
   }
 
   logInfo(...args) {

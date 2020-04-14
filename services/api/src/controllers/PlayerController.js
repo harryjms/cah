@@ -19,7 +19,7 @@ class PlayerController extends CAHController {
 
   insertPlayer = (screenName, gameID) => {
     return this.db.then((col) =>
-      col.insertOne({ name: screenName, game: gameID })
+      col.insertOne({ name: screenName, game: gameID, socketID: null })
     );
   };
 
@@ -27,6 +27,19 @@ class PlayerController extends CAHController {
     return this.db.then((col) =>
       col.deleteOne({ name: screenName, game: gameID })
     );
+  };
+
+  updatePlayer = (screenName, gameID, updates) => {
+    return this.db.then((col) =>
+      col.findOneAndUpdate(
+        { name: screenName, game: gameID },
+        { $set: { ...updates } }
+      )
+    );
+  };
+
+  fetchPlayersInGame = (gameID) => {
+    return this.db.then((col) => col.find({ game: gameID }));
   };
 
   /////////////////
@@ -39,6 +52,14 @@ class PlayerController extends CAHController {
       name: screenName,
       isHost: gameData.host === screenName,
     });
+  };
+
+  registerSocket = (socketID, screenName, gameID) => {
+    try {
+      return this.updatePlayer(screenName, gameID, { socketID });
+    } catch (err) {
+      throw err;
+    }
   };
 
   /////////////////////

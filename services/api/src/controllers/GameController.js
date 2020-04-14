@@ -2,12 +2,15 @@ const CAHController = require("./CAHController");
 const PlayerController = require("./PlayerController");
 const PackController = require("./PackController");
 const moment = require("moment").utc;
+const filter = require("lodash/filter");
+
+const randomIndex = (max) => Math.floor(Math.random() * max + 1) - 1;
 
 class GameController extends CAHController {
   constructor() {
     super();
     this.db = () => this.mongo().then((db) => db.collection("games"));
-    this.ObjectID = (id) => new this.mongo.ObjectID(id);
+    this.Pack = new PackController();
   }
 
   ////////////////
@@ -70,8 +73,7 @@ class GameController extends CAHController {
         throw err;
       }
 
-      const Pack = new PackController();
-      const packExistance = packs.map((pack) => Pack.exists(pack));
+      const packExistance = packs.map((pack) => this.Pack.exists(pack));
 
       if (packExistance.includes(false)) {
         let err = new Error();
@@ -189,6 +191,7 @@ class GameController extends CAHController {
     const {
       player: { gameID, isHost },
     } = req;
+
     try {
       if (!isHost) {
         let err = new Error();
@@ -198,6 +201,9 @@ class GameController extends CAHController {
           "You are not able to start the game as you are not the host.";
         throw err;
       }
+      await this.startGame(gameID);
+      this.emitGameUpdate(gameID);
+      res.sendStatus(200);
     } catch (err) {
       next(err);
     }
@@ -207,10 +213,16 @@ class GameController extends CAHController {
   /// Socket Handlers ///
   ///////////////////////
 
-  socketListeners = (socket) => {
+  socketListeners = async (socket) => {
     socket.on("GetGame", async () => {
-      const { gameID } = socket.player;
+      const { gameID, name: screenName } = socket.player;
+
       const game = await this.findGame(gameID);
+      socket.join(gameID);
+
+      const Player = new PlayerController();
+      await Player.registerSocket(socket.id, screenName, gameID);
+
       socket.emit("GameData", game);
     });
   };
@@ -227,9 +239,77 @@ class GameController extends CAHController {
       .emit("NOTIFICATION", `${screenName} has joined the game`);
   };
 
+  emitGameUpdate = async (gameID) => {
+    try {
+      const game = await this.findGame(gameID);
+      this.io.to(gameID).emit("GameData", game);
+    } catch (err) {
+      throw new Error(err);
+    }
+  };
+
   /////////////////
   /// Utilities ///
   /////////////////
+
+  extractUsedCards = (game) => {
+    try {
+      return game.previousRounds.reduce(
+        (aggr, value) => {
+          const { blackCards, whiteCards } = value;
+          aggr.blackCards = [...aggr.blackCards, ...blackCards];
+          aggr.whiteCards = [...aggr.whiteCards, ...whiteCards];
+          return aggr;
+        },
+        { blackCards: [], whiteCards: [] }
+      );
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  selectBlackCard = async (game, pack) => {
+    try {
+      //1. Get the possible cards from the pack cache
+      if (!pack) {
+        pack = await this.Pack.fetchCachedPack(game.packID);
+
+        if (!pack) {
+          let err = new Error();
+          err.name = "PACK_NOT_CACHED";
+          err.message = `The Pack for game ${game._id} could not be found in cache.`;
+          throw err;
+        }
+      }
+
+      const { blackCards: allBlackCards } = pack;
+      const { blackCards: usedBlackCards } = this.extractUsedCards(game);
+      const availableBlackCards = filter(
+        allBlackCards,
+        (a) => !usedBlackCards.includes(a)
+      );
+
+      return availableBlackCards[randomIndex(availableBlackCards.length)];
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  drawInitial10 = (pack, playerCount) => {
+    const { whiteCards: allWhiteCards } = pack;
+    let remainingWhiteCards = [...allWhiteCards];
+    let cards = [];
+    for (let i = 0; i < playerCount; i++) {
+      let hand = [];
+      for (let x = 0; x < 10; x++) {
+        const cardIndex = randomIndex(remainingWhiteCards.length);
+        hand.push(remainingWhiteCards[cardIndex]);
+        remainingWhiteCards.splice(cardIndex, 1);
+      }
+      cards.push(hand);
+    }
+    return cards;
+  };
 
   startGame = async (gameID) => {
     try {
@@ -242,7 +322,36 @@ class GameController extends CAHController {
         throw err;
       }
 
-      // 1.
+      let newGameData = {
+        packID: null,
+        gameState: "SELECTING",
+        currentRound: {
+          blackCard: {},
+          whiteCards: [],
+          showBlack: true,
+          winner: null,
+        },
+      };
+      // 1. Combine the packs and cache the result
+      const combinedPack = this.Pack.compilePacks(game.packs);
+      newGameData.packID = await this.Pack.cachePack(combinedPack);
+
+      // 2. Select the first Black Card
+      newGameData.currentRound.blackCard = await this.selectBlackCard(
+        game,
+        combinedPack
+      );
+
+      // 3. Generate white cards for every player
+      const Player = new PlayerController();
+      const players = await (await Player.fetchPlayersInGame(gameID)).toArray();
+      const hands = this.drawInitial10(combinedPack, players.length);
+      players.forEach((player, i) => {
+        this.io.to(player.socketID).emit("WHITE_CARD", hands[i]);
+      });
+
+      // 4. Commit to DB and send update to clients
+      await this.updateGame(gameID, { ...newGameData });
     } catch (err) {
       if (typeof err === "Error") {
         throw err;

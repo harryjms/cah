@@ -17,6 +17,7 @@ const Game = ({ history }) => {
   // State: The Game
   const [player, setPlayer] = useState(null);
   const [game, setGame] = useState(null);
+  const [whiteCards, setWhiteCards] = useState([]);
 
   // States: UI
   const [loading, setLoading] = useState(true);
@@ -45,16 +46,21 @@ const Game = ({ history }) => {
     if (player && player.gameID) {
       socket = new Socket();
       socket.on("disconnect", handleDisconnection);
-      socket.on("reconnect", handleReconnection);
+      socket.on("reconnect", () => {
+        socket.emit("GetGame");
+        handleReconnection();
+      });
 
       socket.on("GameData", handleGameData);
       socket.on("Notification", handleNotification);
+      socket.on("WHITE_CARD", handleWhiteCard);
 
       socket.emit("GetGame");
     }
   }, [player]);
 
   const handleGameData = (data) => {
+    console.log(data);
     setGame(data);
     if (loading) {
       setLoading(false);
@@ -73,7 +79,15 @@ const Game = ({ history }) => {
     setConnectionLost(false);
   };
 
-  const handleStartGame = () => {};
+  const handleStartGame = () => {
+    axios.put("/api/game/start").catch((err) => {
+      throw new Error(err);
+    });
+  };
+
+  const handleWhiteCard = (data) => {
+    setWhiteCards((prev) => [...prev, ...data]);
+  };
 
   const deck = () => {
     const { gameState, host } = game;
@@ -101,7 +115,7 @@ const Game = ({ history }) => {
         {deck()}
       </Rail>
       <Rail selectable>
-        {game.currentRound.whiteCards.map((card) => (
+        {whiteCards.map((card) => (
           <Card colour="white" key={card}>
             {card}
           </Card>

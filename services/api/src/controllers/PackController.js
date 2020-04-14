@@ -1,5 +1,6 @@
 const path = require("path");
 const fs = require("fs");
+const find = require("lodash/find");
 const CAHController = require("./CAHController");
 
 const packsPath = path.join(__dirname, "../packs");
@@ -7,8 +8,32 @@ const packsPath = path.join(__dirname, "../packs");
 class PackController extends CAHController {
   constructor() {
     super();
+    this.db = () => this.mongo().then((db) => db.collection("pack-cache"));
     this.packs = this.packNames();
   }
+
+  ///////////////
+  /// Databse ///
+  ///////////////
+  cachePack = async (pack) => {
+    try {
+      const cache = await this.db().then((col) => col.insertOne(pack));
+      return cache.insertedId.toString();
+    } catch (err) {
+      throw new Error(err);
+    }
+  };
+
+  fetchCachedPack = async (id) => {
+    try {
+      const pack = await this.db().then((col) =>
+        col.findOne({ _id: this.ObjectID(id) })
+      );
+      return pack;
+    } catch (err) {
+      throw new Error(err);
+    }
+  };
 
   //////////////////////
   /// REST Endpoints ///
@@ -32,6 +57,10 @@ class PackController extends CAHController {
   /////////////////
   /// Utilities ///
   /////////////////
+
+  randomNumber = (max) => {
+    return Math.floor(Math.random() * max + 1) - 1;
+  };
 
   packFiles = () => {
     try {
@@ -72,6 +101,25 @@ class PackController extends CAHController {
 
   nameOfPack = (pack) => {
     return this.openPack(pack).name;
+  };
+
+  compilePacks = (packs) => {
+    try {
+      let blackCards = {};
+      let whiteCards = [];
+      packs.forEach((packKey) => {
+        const pack = this.openPack(packKey);
+        blackCards = { ...blackCards, ...pack.blackCards };
+        whiteCards = [...whiteCards, ...pack.whiteCards];
+      });
+
+      return {
+        blackCards,
+        whiteCards,
+      };
+    } catch (err) {
+      throw new Error(err);
+    }
   };
 }
 
