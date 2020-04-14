@@ -1,0 +1,48 @@
+{
+  "name": "Plymouth",
+  "blackCards": [
+    { "text": "____: The New SU Friday Night Party", "pick": 1 },
+    { "text": "Clint's new business venture: ____ on ____", "pick": 2 },
+    { "text": "Stoner is angry at the internet because of ____", "pick": 1 },
+    { "text": "Ben just bought a ____", "pick": 1 },
+    { "text": "What's Kenyon's new favourite band?", "pick": 1 },
+    { "text": "Hi, Welcome to Jam House, up first we have ____", "pick": 1 },
+    { "text": "Getting smashed in Switch and making out with ____", "pick": 1 },
+    {
+      "text": "A new addition to Fresher's Fair the University of Plymouth ____ Society",
+      "pick": 1
+    }
+  ],
+  "whiteCards": [
+    "A Ben Holmes 5 minuites",
+    "A delicious baked treat with a deadly suprise",
+    "Chloe Mills",
+    "UPSUs Entertainment budget",
+    "James Stoner",
+    "The Plymouth Herald Comments section",
+    "The Grange",
+    "Burger Van Salmonella",
+    "66 Whittington Street",
+    "A cute doggo",
+    "Seagulls",
+    "A BMW the size of a yacht",
+    "Dropping out to become a DJ",
+    "Getting smashed on the Hoe",
+    "A degree in Media Studies",
+    "Unrhythmic Sex",
+    "CLINT.",
+    "The Hoe",
+    "Dressing up as a boat",
+    "Wearing a tutu",
+    "being sick on a live stream",
+    "performing at jam house",
+    "getting fucked by Rob Badley",
+    "Fat Dan",
+    "Not Inviting Liam",
+    "Getting drunk at work",
+    "taking a shit at the SU",
+    "sticking a best kebab up your rectum",
+    "waiting for Ben Holmes",
+    "Lol Fish Tanks"
+  ]
+}

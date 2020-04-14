@@ -18,7 +18,8 @@ class GameController extends CAHController {
     return this.db().then((col) => col.findOne({ _id: this.ObjectID(id) }));
   };
 
-  insertGame = (gameName, host, packs = []) => {
+  insertGame = (gameName, host, additionalPacks = []) => {
+    let packs = ["base", ...additionalPacks];
     const gameData = {
       host,
       name: gameName,
@@ -52,7 +53,7 @@ class GameController extends CAHController {
    * POST /api/game
    */
   postNewGame = async (req, res, next) => {
-    const { gameName, screenName, packs } = req.body;
+    const { gameName, screenName, additionalPacks: packs } = req.body;
     try {
       if (!gameName || !screenName || !Array.isArray(packs)) {
         let err = new Error();

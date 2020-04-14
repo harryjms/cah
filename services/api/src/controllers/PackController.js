@@ -1,12 +1,37 @@
 const path = require("path");
 const fs = require("fs");
+const CAHController = require("./CAHController");
 
 const packsPath = path.join(__dirname, "../packs");
 
-class PackController {
+class PackController extends CAHController {
   constructor() {
+    super();
     this.packs = this.packNames();
   }
+
+  //////////////////////
+  /// REST Endpoints ///
+  //////////////////////
+
+  /**
+   * GET /api/packs
+   */
+  getPacks = (req, res, next) => {
+    try {
+      const packs = this.packs.map((pack) => ({
+        name: this.nameOfPack(pack),
+        key: pack,
+      }));
+      res.json(packs);
+    } catch (err) {
+      next(err);
+    }
+  };
+
+  /////////////////
+  /// Utilities ///
+  /////////////////
 
   packFiles = () => {
     try {
@@ -43,6 +68,10 @@ class PackController {
       err.statusCode = 404;
       throw err;
     }
+  };
+
+  nameOfPack = (pack) => {
+    return this.openPack(pack).name;
   };
 }
 

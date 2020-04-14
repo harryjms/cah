@@ -2,6 +2,7 @@ const router = require("express").Router();
 const jwt = require("../helpers/jwt");
 const GameController = require("../controllers/GameController");
 const PlayerController = require("../controllers/PlayerController");
+const PackController = require("../controllers/PackController");
 
 const handleError = (err, req, res, next) => {
   if (err) {
@@ -27,6 +28,7 @@ const parseToken = (req, res, next) => {
 module.exports = router.use(
   "/",
   router
+    .get("/packs", new PackController().getPacks)
     .get("/me", parseToken, new PlayerController().getMyDetails)
     .post("/game", new GameController().postNewGame)
     .post("/game/join", new GameController().postJoinGame)
