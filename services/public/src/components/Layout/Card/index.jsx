@@ -13,6 +13,8 @@ const useStyles = createUseStyles((theme) => ({
     whiteSpace: "normal",
     position: "relative",
     perspective: 1000,
+    transition: "margin-top 0.2s ease-in-out",
+    userSelect: "none",
     [theme.mediaQuery.iPhone8]: {
       width: 150,
       minWidth: 150,
@@ -91,35 +93,41 @@ const useStyles = createUseStyles((theme) => ({
     "& .front, & .back": {
       borderColor: "rgba(10,132,255)",
     },
+    marginTop: -20,
   },
 }));
 
-const Card = ({ children, colour, pick = 1, hideValue = false, innerRef }) => {
-  const { selected, toggleSelected, selectable } = useRail();
+const Card = ({
+  children,
+  colour,
+  pick = 1,
+  hideValue = false,
+  innerRef,
+  onClick,
+  selected,
+}) => {
+  let selectable = typeof onClick === "function";
   const classes = useStyles({ selectable });
-
-  const handleSelect = () => {
-    if (colour !== "black") {
-      toggleSelected(children);
-    }
-  };
 
   return (
     <div
       className={[
         classes.card,
         colour === "black" ? classes.black : classes.white,
-        selected.includes(children) && classes.selected,
+        selected && classes.selected,
         hideValue && "flip",
       ]
         .filter((a) => a)
         .join(" ")}
-      onClick={handleSelect}
+      onClick={onClick}
       ref={innerRef}
     >
       <div className="inner">
         <div className="front">
-          <div className={classes.content}>{children}</div>
+          <div
+            className={classes.content}
+            dangerouslySetInnerHTML={{ __html: children }}
+          />
           <div className={classes.footer}>
             <div className="name">Cards Against</div>
             {pick > 1 && colour === "black" && (

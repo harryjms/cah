@@ -5,11 +5,8 @@ import { withRouter } from "react-router-dom";
 import Loading from "../Layout/Loading";
 import PlayedCards from "./PlayedCards";
 import axios from "axios";
-import socketIOClient from "socket.io-client";
-import { useCookies } from "react-cookie";
-import Invite from "../Layout/Invite";
 import Notification from "../Layout/Notification";
-
+import WhiteCards from "./WhiteCards";
 import GameBar from "./GameBar";
 import Socket from "../../helpers/socket";
 
@@ -20,8 +17,6 @@ const Game = ({ history }) => {
   // State: The Game
   const [player, setPlayer] = useState({});
   const [game, setGame] = useState(null);
-  const [whiteCards, setWhiteCards] = useState([]);
-  const isHost = game && player && game.host === player.name;
 
   // States: UI
   const [loading, setLoading] = useState(true);
@@ -34,6 +29,7 @@ const Game = ({ history }) => {
         const { data } = await axios.get("/api/me");
         setPlayer(data);
       } catch (err) {
+        history.push("/");
         throw new Error(err);
       }
     };
@@ -112,15 +108,7 @@ const Game = ({ history }) => {
             </Card>
             {deck()}
           </Rail>
-          {player.hand && (
-            <Rail selectable>
-              {player.hand.map((card) => (
-                <Card colour="white" key={card}>
-                  {card}
-                </Card>
-              ))}
-            </Rail>
-          )}
+          <WhiteCards />
           {notifications.map((not, i) => (
             <Notification key={i} show>
               {not}
