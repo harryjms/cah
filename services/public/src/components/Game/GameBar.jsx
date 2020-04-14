@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
+import axios from "axios";
 import Button from "../Layout/Button";
 import Loading from "../Layout/Loading";
 import Invite from "../Layout/Invite";
+import { useGameContext } from "./index";
 
 const useStyles = createUseStyles({
   GameBar: {
@@ -25,13 +27,22 @@ const useStyles = createUseStyles({
   },
 });
 
-const GameBar = ({ game, player, actions }) => {
+const GameBar = () => {
+  const { game, player } = useGameContext();
   const classes = useStyles();
   const [showInvite, setShowInvite] = useState(false);
   const isHost = game && player && game.host === player.name;
+
   const handleInvite = () => {
     setShowInvite((prev) => !prev);
   };
+
+  const handleStartGame = () => {
+    axios.put("/api/game/start").catch((err) => {
+      throw new Error(err);
+    });
+  };
+
   return (
     <div className={classes.GameBar}>
       {showInvite && <Invite code={game._id} onDismiss={handleInvite} />}
@@ -49,7 +60,7 @@ const GameBar = ({ game, player, actions }) => {
       {isHost && (
         <div>
           {game.gameState === "IDLE" ? (
-            <Button onClick={actions.handleStartGame}>Start Game</Button>
+            <Button onClick={handleStartGame}>Start Game</Button>
           ) : (
             <Button>End Game</Button>
           )}

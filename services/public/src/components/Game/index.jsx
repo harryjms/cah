@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, createContext, useContext } from "react";
 import Rail from "../Layout/Rail";
 import Card from "../Layout/Card";
 import { withRouter } from "react-router-dom";
@@ -12,6 +12,9 @@ import Notification from "../Layout/Notification";
 
 import GameBar from "./GameBar";
 import Socket from "../../helpers/socket";
+
+const GameContext = createContext();
+export const useGameContext = () => useContext(GameContext);
 
 const Game = ({ history }) => {
   // State: The Game
@@ -67,6 +70,7 @@ const Game = ({ history }) => {
   };
 
   const handlePlayerData = (data) => {
+    console.log("PlayerData", player);
     setPlayer(data);
   };
 
@@ -82,12 +86,6 @@ const Game = ({ history }) => {
     setConnectionLost(false);
   };
 
-  const handleStartGame = () => {
-    axios.put("/api/game/start").catch((err) => {
-      throw new Error(err);
-    });
-  };
-
   const deck = () => {
     const { gameState, host } = game;
     switch (gameState) {
@@ -99,11 +97,11 @@ const Game = ({ history }) => {
   };
 
   return (
-    <>
+    <GameContext.Provider value={{ game, player }}>
       {loading && <Loading fullScreen>Loading Game...</Loading>}
       {game && (
         <>
-          <GameBar game={game} player={player} actions={{ handleStartGame }} />
+          <GameBar />
           <Rail>
             <Card
               colour="black"
@@ -123,8 +121,8 @@ const Game = ({ history }) => {
               ))}
             </Rail>
           )}
-          {notifications.map((not) => (
-            <Notification key={not} show>
+          {notifications.map((not, i) => (
+            <Notification key={i} show>
               {not}
             </Notification>
           ))}
@@ -133,7 +131,7 @@ const Game = ({ history }) => {
       {connectionLost && (
         <Loading fullScreen>Reconnecting to server...</Loading>
       )}
-    </>
+    </GameContext.Provider>
   );
 };
 
