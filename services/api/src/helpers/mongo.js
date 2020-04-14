@@ -1,4 +1,4 @@
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectID } = require("mongodb");
 
 const { MONGO_ROOT_USER, MONGO_ROOT_PASS, MONGO_HOST } = process.env;
 
@@ -7,3 +7,5 @@ module.exports = () => {
     `mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASS}@${MONGO_HOST}/?authSource=admin`
   ).then((con) => con.db("cah"));
 };
+
+module.exports.ObjectID = ObjectID;

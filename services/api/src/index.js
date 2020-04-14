@@ -11,15 +11,10 @@ module.exports.socketio = io;
 
 const { parseFromSocket } = require("./helpers/parseCookie");
 const { SERVER_PORT } = process.env;
-const managePlayer = require("./routes/player/managePlayer");
 
 io.on("connection", (socket) => {
   const player = parseFromSocket(socket);
   socket.player = player || {};
-  socket.on("disconnect", () => {
-    managePlayer.removePlayerFromGame(player.name, player.gameID);
-  });
-  require("./routes/sockets")(socket);
 });
 
 app.use("/api", cookieParser(), bodyParser.json(), require("./routes/api"));

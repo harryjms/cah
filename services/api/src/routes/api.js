@@ -1,20 +1,34 @@
 const router = require("express").Router();
-const socketio = require("../index").socketio;
+const jwt = require("../helpers/jwt");
+const GameController = require("../controllers/GameController");
+
+const handleError = (err, req, res, next) => {
+  if (err) {
+    console.log(err);
+    res.statusCode = err.statusCode || 500;
+    res.send(err);
+  }
+};
+
+const parseToken = (req, res, next) => {
+  try {
+    req.player = jwt.payloadFromCookie(req.cookies);
+    if (req.player) {
+      next();
+    } else {
+      res.sendStatus(200);
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = router.use(
   "/",
-  [
-    require("./game"),
-    require("./player"),
-    router.get("/test/:game", (req, res, next) => {
-      console.log(req.params.game);
-      socketio.to(req.params.game).emit("BLACK_CARD_VISIBLE", true);
-      res.sendStatus(200);
-    }),
-  ],
-  (err, req, res, next) => {
-    if (err) {
-      console.error(err);
-      res.sendStatus(500);
-    }
-  }
+  router
+    .get("/game/:gameID?", new GameController().getGame)
+    .post("/game", new GameController().postNewGame)
+    .post("/game/join", new GameController().postJoinGame)
+    .post("/game/leave", parseToken, new GameController().postLeaveGame),
+  handleError
 );
