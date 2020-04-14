@@ -2,9 +2,7 @@ const router = require("express").Router();
 const mongo = require("../../helpers/mongo");
 const db = () => mongo().then((db) => db.collection("players"));
 const { fetchGameById } = require("../game/getGame");
-const { parseFromSocket } = require("../../helpers/parseCookie");
-
-const { socketio } = require("../../index");
+const socketio = require("../../index").socketio;
 
 const fetchPlayersInGame = (game) => db().then((col) => col.find({ game }));
 
@@ -33,7 +31,12 @@ const addPlayerToGame = async (name, game) => {
 };
 
 const removePlayerFromGame = (name, game) => {
-  return db().then((col) => col.deleteOne({ game, name }));
+  return db()
+    .then((col) => col.deleteOne({ game, name }))
+    .then(() => {
+      socketio.to(game).emit("NOTIFICATION", `${name} left the game.`);
+      console.log(`[${name}]: Left Game ${game}`);
+    });
 };
 
 module.exports.fetchPlayersInGame = fetchPlayersInGame;

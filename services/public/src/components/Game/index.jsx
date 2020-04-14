@@ -17,6 +17,7 @@ const Game = ({ history }) => {
   const [showInvite, setShowInvite] = useState(false);
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [connectionLost, setConnectionLost] = useState(false);
   const [gameParams, setGameParams] = useState({
     gameID: null,
     screenName: null,
@@ -71,6 +72,12 @@ const Game = ({ history }) => {
       socket.on("NOTIFICATION", (data) => {
         setNotifications((prev) => [...prev, data]);
       });
+      socket.on("disconnect", () => {
+        setConnectionLost(true);
+      });
+      socket.on("reconnect", () => {
+        setConnectionLost(false);
+      });
     }
   }, [gameParams.gameID]);
 
@@ -117,6 +124,9 @@ const Game = ({ history }) => {
           {not}
         </Notification>
       ))}
+      {connectionLost && (
+        <Loading fullScreen>Reconnecting to server...</Loading>
+      )}
     </>
   );
 };

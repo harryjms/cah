@@ -50,9 +50,10 @@ const joinGameSocket = (socket) => {
   socket.on("JoinGame", () => {
     try {
       const payload = socket.player;
+      console.log(payload);
       fetchGameById(payload.gameID).then((game) => {
         if (game) {
-          console.log(`[${payload.name}]: Joined Game ${game._id}.`);
+          console.log(`[${payload.name}]: Joined Game ${game._id}`);
           socket
             .to(game._id)
             .emit("NOTIFICATION", `${payload.name} joined the game.`);
