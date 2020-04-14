@@ -36,6 +36,7 @@ const Game = ({ history }) => {
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [connectionLost, setConnectionLost] = useState(false);
+  const [confirming, setConfirming] = useState(false);
   const classes = useStyles();
 
   useEffect(() => {
@@ -106,7 +107,9 @@ const Game = ({ history }) => {
         return (
           handSelection.length === game.currentRound.blackCard.pick && (
             <div className={classes.ConfirmButton}>
-              <Button>Confirm Selection</Button>
+              <Button onClick={handleConfirmSelection} disabled={confirming}>
+                {confirming ? "Confirming..." : "Confirm Selection"}
+              </Button>
             </div>
           )
         );
@@ -114,6 +117,9 @@ const Game = ({ history }) => {
   };
 
   const handleHandSelection = (card) => {
+    if (confirming) {
+      return;
+    }
     const { pick } = game.currentRound.blackCard;
     let newArray = [...handSelection];
     if (handSelection.includes(card)) {
@@ -124,6 +130,14 @@ const Game = ({ history }) => {
       newArray.push(card);
     }
     setHandSelection(newArray);
+  };
+
+  const handleConfirmSelection = () => {
+    setConfirming(true);
+    axios.post("/api/game/cards", { handSelection }).then(() => {
+      setConfirming(false);
+      setHandSelection([]);
+    });
   };
 
   return (

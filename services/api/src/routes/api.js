@@ -32,6 +32,7 @@ module.exports = router.use(
     .get("/me", parseToken, new PlayerController().getMyDetails)
     .post("/game", new GameController().postNewGame)
     .post("/game/join", new GameController().postJoinGame)
-    .put("/game/start", parseToken, new GameController().putStartGame),
+    .put("/game/start", parseToken, new GameController().putStartGame)
+    .post("/game/cards", parseToken, new GameController().postCardSelection),
   handleError
 );

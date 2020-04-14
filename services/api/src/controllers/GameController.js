@@ -31,8 +31,8 @@ class GameController extends CAHController {
       packs,
       currentRound: {
         blackCard: {},
-        whiteCards: [],
         showBlack: false,
+        showWhite: false,
         winner: null,
       },
       previousRounds: [],
@@ -197,6 +197,16 @@ class GameController extends CAHController {
     } catch (err) {
       next(err);
     }
+  };
+
+  /**
+   * POST /api/game/cards
+   */
+  postCardSelection = (req, res, next) => {
+    const { gameID, name: screenName } = req.player;
+    const { handSelection } = req.body;
+    const Player = new PlayerController();
+    Player.updateCardSelection(screenName, gameID, handSelection);
   };
 
   ///////////////////////

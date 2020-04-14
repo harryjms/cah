@@ -28,6 +28,7 @@ class PlayerController extends CAHController {
         joined: moment().toISOString(),
         state,
         hand: [],
+        selected: [],
       })
     );
   };
@@ -82,10 +83,46 @@ class PlayerController extends CAHController {
   updateHand = async (screenName, gameID, hand) => {
     try {
       const player = await this.updatePlayer(screenName, gameID, { hand });
-
       this.io
         .to(player.value.socketID)
         .emit("PlayerData", { ...player.value, hand });
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  updateCardSelection = async (screenName, gameID, selection) => {
+    try {
+      const player = await this.findPlayer(screenName, gameID);
+      if (!player) {
+        let err = new Error();
+        err.statusCode = 400;
+        err.name = "PLAYER_INVALID";
+        err.message = "The player screen name does not match any in the game.";
+        throw err;
+      }
+
+      const hand = player.hand;
+      selection.forEach((card) => {
+        if (!hand.includes(card)) {
+          let err = new Error();
+          err.statusCode = 400;
+          err.name = "SELECTED_CARD_NOT_IN_HAND";
+          err.message =
+            "One or more of the cards selected are not the players hand";
+          throw err;
+        }
+      });
+
+      const newHand = [...hand].filter((a) => !selection.includes(a));
+      await this.updatePlayer(screenName, gameID, {
+        hand: newHand,
+        selected: selection,
+      });
+      this.io
+        .to(player.socketID)
+        .emit("PlayerData", { ...player, hand: newHand, selected: selection });
+      return true;
     } catch (err) {
       throw err;
     }
