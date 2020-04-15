@@ -11,6 +11,7 @@ class GameController extends CAHController {
     super();
     this.db = () => this.mongo().then((db) => db.collection("games"));
     this.Pack = new PackController();
+    this.Player = new PlayerController();
   }
 
   ////////////////
@@ -48,6 +49,8 @@ class GameController extends CAHController {
       col.updateOne({ _id: this.ObjectID(gameID) }, { $set: { ...changes } })
     );
   };
+
+  fetchWaitingFor = (gameID) => {};
 
   //////////////////////
   /// REST Endpoints ///
@@ -94,11 +97,10 @@ class GameController extends CAHController {
         throw err;
       }
 
-      const Player = new PlayerController();
       const game = await this.insertGame(gameName, screenName, packs);
-      const player = await Player.insertPlayer(screenName, game._id);
+      const player = await this.Player.insertPlayer(screenName, game._id);
       if (player) {
-        const token = Player.createToken(game, screenName);
+        const token = this.Player.createToken(game, screenName);
         res.cookie("token", token);
         res.json({
           gameID: game._id.toString(),
@@ -156,7 +158,7 @@ class GameController extends CAHController {
         throw err;
       }
 
-      const player = await Player.findPlayer(screenName, gameID);
+      const player = await this.Player.findPlayer(screenName, gameID);
       if (player) {
         let err = new Error();
         err.statusCode = 409;
@@ -165,8 +167,8 @@ class GameController extends CAHController {
         throw err;
       }
 
-      await Player.insertPlayer(screenName, gameID, "IDLE");
-      const token = Player.createToken(game, screenName);
+      await this.Player.insertPlayer(screenName, gameID, "IDLE");
+      const token = this.Player.createToken(game, screenName);
       this.emitPlayerJoined(screenName, gameID);
       res.cookie("token", token);
       res.sendStatus(200);
@@ -207,10 +209,9 @@ class GameController extends CAHController {
     try {
       const { gameID, name: screenName } = req.player;
       const { handSelection } = req.body;
-      const Player = new PlayerController();
 
       // 1. Update the cards in the players hand
-      await Player.updateCardSelection(screenName, gameID, handSelection);
+      await this.Player.updateCardSelection(screenName, gameID, handSelection);
 
       // 2. Get white cards in game
       const cards = await this.Pack.fetchSelectedWhiteCards(gameID);
@@ -236,18 +237,16 @@ class GameController extends CAHController {
       const game = await this.findGame(gameID);
       socket.join(gameID);
 
-      const Player = new PlayerController();
-      await Player.registerSocket(socket.id, screenName, gameID);
-      const player = await Player.findPlayer(screenName, gameID);
+      await this.Player.registerSocket(socket.id, screenName, gameID);
+      const player = await this.Player.findPlayer(screenName, gameID);
       this.emitPlayerJoined(screenName, gameID);
       socket.emit("GameData", game);
     });
 
     socket.on("disconnect", async () => {
-      const Player = new PlayerController();
       const { name, gameID } = socket.player;
       try {
-        await Player.leaveGame(name, gameID);
+        await this.Player.leaveGame(name, gameID);
         this.emitPlayerLeft(name, gameID);
       } catch (err) {
         next(err);
@@ -372,21 +371,46 @@ class GameController extends CAHController {
       );
 
       // 3. Generate white cards for every player
-      const Player = new PlayerController();
-      const players = await (await Player.fetchPlayersInGame(gameID)).toArray();
+      const players = await (
+        await this.Player.fetchPlayersInGame(gameID)
+      ).toArray();
       const hands = this.drawInitial10(combinedPack, players.length);
       players.forEach((player, i) => {
-        Player.updateHand(player.name, gameID, hands[i]);
+        this.Player.updateHand(player.name, gameID, hands[i]);
       });
 
       // 4. Commit to DB and send update to clients
       await this.updateGame(gameID, { ...newGameData });
+
+      // 5. Set players status
+      await this.Player.updatePlayersInGame(gameID, { state: "SELECTING" });
+      this.Player.emitUpdateAll(gameID);
     } catch (err) {
       if (typeof err === "Error") {
         throw err;
       } else {
         throw new Error(err);
       }
+    }
+  };
+
+  setGameStateSelecting = async (gameID) => {
+    try {
+      await this.updateGame(gameID, { gameState: "SELECTING" });
+      await this.Player.updatePlayersInGame(gameID, { state: "SELECTING" });
+      this.Player.emitUpdateAll(gameID);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  setGameStateReading = async (gameID) => {
+    try {
+      await this.updateGame(gameID, { gameState: "READING" });
+      await this.Player.updatePlayersInGame(gameID, { state: "IDLE" });
+      this.Player.emitUpdateAll(gameID);
+    } catch (err) {
+      throw err;
     }
   };
 }

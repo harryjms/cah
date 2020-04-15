@@ -48,8 +48,29 @@ class PlayerController extends CAHController {
     );
   };
 
+  updatePlayersInGame = (gameID, changes) =>
+    this.db.then((col) =>
+      col.updateMany({ game: gameID }, { $set: { ...changes } })
+    );
+
   fetchPlayersInGame = (gameID) => {
     return this.db.then((col) => col.find({ game: gameID }));
+  };
+
+  //////////////
+  /// Socket ///
+  //////////////
+  emitUpdateAll = async (gameID) => {
+    try {
+      const players = await this.fetchPlayersInGame(gameID).then((p) =>
+        p.toArray()
+      );
+      players.forEach((player) => {
+        this.io.to(player.socketID).emit("PlayerData", player);
+      });
+    } catch (err) {
+      throw err;
+    }
   };
 
   /////////////////

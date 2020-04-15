@@ -12,6 +12,9 @@ const PlayedCards = () => {
   const [spread, setSpread] = useState(null);
 
   const handleSpreadStack = (i) => {
+    if (!showWhite) {
+      return;
+    }
     if (spread !== i) {
       setSpread(i);
     } else {
