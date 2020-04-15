@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useGameContext } from "./index";
 import Rail from "../Layout/Rail";
 import Card from "../Layout/Card";
+import findIndex from "lodash/findIndex";
+
 const WhiteCards = () => {
   const { game, player, handSelection, handleHandSelection } = useGameContext();
 
@@ -17,16 +19,20 @@ const WhiteCards = () => {
 
   return (
     <Rail>
-      {player.hand.map((card) => (
-        <Card
-          key={card}
-          colour="white"
-          onClick={() => handleHandSelection(card)}
-          selected={handSelection.includes(card)}
-        >
-          {card}
-        </Card>
-      ))}
+      {player.hand.map((card) => {
+        const cardNumber = findIndex(handSelection, (h) => h === card) + 1;
+        return (
+          <Card
+            key={card}
+            colour="white"
+            onClick={() => handleHandSelection(card)}
+            selected={handSelection.includes(card)}
+            cardNumber={cardNumber > 0 && cardNumber}
+          >
+            {card}
+          </Card>
+        );
+      })}
     </Rail>
   );
 };

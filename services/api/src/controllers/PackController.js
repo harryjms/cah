@@ -2,6 +2,7 @@ const path = require("path");
 const fs = require("fs");
 const find = require("lodash/find");
 const CAHController = require("./CAHController");
+const PlayerController = require("./PlayerController");
 
 const packsPath = path.join(__dirname, "../packs");
 
@@ -20,7 +21,7 @@ class PackController extends CAHController {
       const cache = await this.db().then((col) => col.insertOne(pack));
       return cache.insertedId.toString();
     } catch (err) {
-      throw new Error(err);
+      throw err;
     }
   };
 
@@ -31,7 +32,22 @@ class PackController extends CAHController {
       );
       return pack;
     } catch (err) {
-      throw new Error(err);
+      throw err;
+    }
+  };
+
+  fetchSelectedWhiteCards = async (gameID) => {
+    try {
+      const Player = new PlayerController();
+      const players = await Player.fetchPlayersInGame(gameID).then((players) =>
+        players.toArray()
+      );
+      return players.reduce((aggr, value) => {
+        aggr.push(value.selected);
+        return aggr;
+      }, []);
+    } catch (err) {
+      throw err;
     }
   };
 
@@ -70,7 +86,7 @@ class PackController extends CAHController {
         .filter((a) => /.json$/.test(a));
       return packFiles;
     } catch (err) {
-      throw new Error(err);
+      throw err;
     }
   };
 
@@ -118,7 +134,7 @@ class PackController extends CAHController {
         whiteCards,
       };
     } catch (err) {
-      throw new Error(err);
+      throw err;
     }
   };
 }

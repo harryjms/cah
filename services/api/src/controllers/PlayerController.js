@@ -19,7 +19,7 @@ class PlayerController extends CAHController {
     );
   };
 
-  insertPlayer = (screenName, gameID, state) => {
+  insertPlayer = (screenName, gameID, state = "IDLE") => {
     return this.db.then((col) =>
       col.insertOne({
         name: screenName,
@@ -115,10 +115,12 @@ class PlayerController extends CAHController {
       });
 
       const newHand = [...hand].filter((a) => !selection.includes(a));
+
       await this.updatePlayer(screenName, gameID, {
         hand: newHand,
         selected: selection,
       });
+
       this.io
         .to(player.socketID)
         .emit("PlayerData", { ...player, hand: newHand, selected: selection });

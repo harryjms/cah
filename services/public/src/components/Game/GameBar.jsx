@@ -15,6 +15,13 @@ const useStyles = createUseStyles({
       display: "flex",
       alignItems: "center",
     },
+    "& .buttons": {
+      display: "flex",
+      whiteSpace: "nowrap",
+      "& button": {
+        marginRight: 5,
+      },
+    },
     "& h2": {
       margin: 0,
       textOverflow: "elipsis",
@@ -48,24 +55,25 @@ const GameBar = () => {
       {showInvite && <Invite code={game._id} onDismiss={handleInvite} />}
       <div className="content">
         <h2>{game.name}</h2>
-        <Button style={{ width: "auto" }} onClick={handleInvite}>
-          Invite
-        </Button>
+        <div className="buttons">
+          {isHost &&
+            (game.gameState === "IDLE" ? (
+              <Button onClick={handleStartGame}>Start Game</Button>
+            ) : (
+              <Button>End Game</Button>
+            ))}
+          {game.gameState === "IDLE" && (
+            <Button style={{ width: "auto" }} onClick={handleInvite}>
+              Invite
+            </Button>
+          )}
+        </div>
       </div>
       <div>
         {game.gameState === "IDLE" && (
           <Loading>Waiting for game to start...</Loading>
         )}
       </div>
-      {isHost && (
-        <div>
-          {game.gameState === "IDLE" ? (
-            <Button onClick={handleStartGame}>Start Game</Button>
-          ) : (
-            <Button>End Game</Button>
-          )}
-        </div>
-      )}
     </div>
   );
 };

@@ -31,6 +31,7 @@ class GameController extends CAHController {
       packs,
       currentRound: {
         blackCard: {},
+        whiteCards: [],
         showBlack: false,
         showWhite: false,
         winner: null,
@@ -202,11 +203,26 @@ class GameController extends CAHController {
   /**
    * POST /api/game/cards
    */
-  postCardSelection = (req, res, next) => {
-    const { gameID, name: screenName } = req.player;
-    const { handSelection } = req.body;
-    const Player = new PlayerController();
-    Player.updateCardSelection(screenName, gameID, handSelection);
+  postCardSelection = async (req, res, next) => {
+    try {
+      const { gameID, name: screenName } = req.player;
+      const { handSelection } = req.body;
+      const Player = new PlayerController();
+
+      // 1. Update the cards in the players hand
+      await Player.updateCardSelection(screenName, gameID, handSelection);
+
+      // 2. Get white cards in game
+      const cards = await this.Pack.fetchSelectedWhiteCards(gameID);
+      const game = await this.findGame(gameID);
+      await this.updateGame(gameID, {
+        currentRound: { ...game.currentRound, whiteCards: cards },
+      });
+      this.emitGameUpdate(gameID);
+      res.sendStatus(200);
+    } catch (err) {
+      next(err);
+    }
   };
 
   ///////////////////////
@@ -338,6 +354,7 @@ class GameController extends CAHController {
         packID: null,
         gameState: "SELECTING",
         currentRound: {
+          ...game.currentRound,
           blackCard: {},
           whiteCards: [],
           showBlack: true,

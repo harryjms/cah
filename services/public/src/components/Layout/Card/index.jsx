@@ -105,6 +105,7 @@ const Card = ({
   innerRef,
   onClick,
   selected,
+  cardNumber,
 }) => {
   let selectable = typeof onClick === "function";
   const classes = useStyles({ selectable });
@@ -130,9 +131,12 @@ const Card = ({
           />
           <div className={classes.footer}>
             <div className="name">Cards Against</div>
-            {pick > 1 && colour === "black" && (
-              <div className="pick">Pick {pick}</div>
-            )}
+            {(pick > 1 || cardNumber) &&
+              (colour === "black" ? (
+                <div className="pick">Pick {pick}</div>
+              ) : (
+                <div className="pick">{cardNumber}</div>
+              ))}
           </div>
         </div>
         <div className="back">Cards Against</div>

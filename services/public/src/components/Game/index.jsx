@@ -98,26 +98,8 @@ const Game = ({ history }) => {
     setConnectionLost(false);
   };
 
-  const deck = () => {
-    const { gameState, host } = game;
-    switch (gameState) {
-      case "READING":
-        return <PlayedCards cards={game.currentRound.whiteCards} />;
-      case "SELECTING":
-        return (
-          handSelection.length === game.currentRound.blackCard.pick && (
-            <div className={classes.ConfirmButton}>
-              <Button onClick={handleConfirmSelection} disabled={confirming}>
-                {confirming ? "Confirming..." : "Confirm Selection"}
-              </Button>
-            </div>
-          )
-        );
-    }
-  };
-
   const handleHandSelection = (card) => {
-    if (confirming) {
+    if (confirming || player.selected.length > 0) {
       return;
     }
     const { pick } = game.currentRound.blackCard;
@@ -134,10 +116,14 @@ const Game = ({ history }) => {
 
   const handleConfirmSelection = () => {
     setConfirming(true);
-    axios.post("/api/game/cards", { handSelection }).then(() => {
-      setConfirming(false);
-      setHandSelection([]);
-    });
+    axios
+      .post("/api/game/cards", {
+        handSelection,
+      })
+      .then(() => {
+        setConfirming(false);
+        setHandSelection([]);
+      });
   };
 
   return (
@@ -156,9 +142,16 @@ const Game = ({ history }) => {
             >
               {game.currentRound.blackCard.text}
             </Card>
-            {deck()}
+            <PlayedCards />
           </Rail>
           <WhiteCards />
+          {handSelection.length === game.currentRound.blackCard.pick && (
+            <div className={classes.ConfirmButton}>
+              <Button onClick={handleConfirmSelection} disabled={confirming}>
+                {confirming ? "Confirming..." : "Confirm Selection"}
+              </Button>
+            </div>
+          )}
           {notifications.map((not, i) => (
             <Notification key={i} show>
               {not}
