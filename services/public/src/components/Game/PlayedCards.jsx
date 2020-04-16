@@ -77,7 +77,7 @@ const PlayedCards = () => {
             </Card>
           )}
         </div>
-        {player.state === "CZAR" && (
+        {player.state === "CZAR" && showWhite && (
           <div className="button">
             <Button onClick={() => handleSelectWinner(card)}>Select</Button>
           </div>
