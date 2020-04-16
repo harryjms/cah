@@ -11,7 +11,6 @@ const useStyles = createUseStyles({
   Card: {
     display: "inline-block",
     position: "absolute",
-    boxShadow: "-1px 0 5px 0 #c5c5c5",
     borderRadius: 10,
     transition: "left 0.2s ease-in-out",
   },

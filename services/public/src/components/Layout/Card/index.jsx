@@ -52,6 +52,7 @@ const useStyles = createUseStyles((theme) => ({
       borderWidth: 2,
       borderStyle: "solid",
       borderColor: "transparent",
+      boxShadow: "-1px 0 5px 0 #c5c5c5",
     },
 
     "& .back": {
