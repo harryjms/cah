@@ -219,7 +219,9 @@ class GameController extends CAHController {
       await this.updateGame(gameID, {
         currentRound: { ...game.currentRound, whiteCards: cards },
       });
+      await this.Player.updatePlayer(screenName, gameID, { state: "SELECTED" });
       this.emitGameUpdate(gameID);
+      this.Player.emitUpdateAll(gameID);
       res.sendStatus(200);
     } catch (err) {
       next(err);
@@ -238,7 +240,6 @@ class GameController extends CAHController {
       socket.join(gameID);
 
       await this.Player.registerSocket(socket.id, screenName, gameID);
-      const player = await this.Player.findPlayer(screenName, gameID);
       this.emitPlayerJoined(screenName, gameID);
       socket.emit("GameData", game);
     });
@@ -257,6 +258,7 @@ class GameController extends CAHController {
   emitPlayerLeft = (screenName, gameID) => {
     this.logInfo(`[${screenName}]: Left the game ${gameID}`);
     this.io.to(gameID).emit("Notification", `${screenName} has left the game`);
+    this.emitPlayersInGame(gameID);
   };
 
   emitPlayerJoined = (screenName, gameID) => {
@@ -264,14 +266,29 @@ class GameController extends CAHController {
     this.io
       .to(gameID)
       .emit("Notification", `${screenName} has joined the game`);
+    this.emitPlayersInGame(gameID);
   };
 
   emitGameUpdate = async (gameID) => {
     try {
       const game = await this.findGame(gameID);
       this.io.to(gameID).emit("GameData", game);
+      this.emitPlayersInGame(gameID);
     } catch (err) {
-      throw new Error(err);
+      throw err;
+    }
+  };
+
+  emitPlayersInGame = async (gameID) => {
+    try {
+      const players = await this.Player.fetchPlayersInGame(
+        gameID
+      ).then((players) =>
+        players.map((player) => ({ name: player.name, state: player.state }))
+      );
+      this.io.to(gameID).emit("Players", players);
+    } catch (err) {
+      throw err;
     }
   };
 
@@ -371,9 +388,7 @@ class GameController extends CAHController {
       );
 
       // 3. Generate white cards for every player
-      const players = await (
-        await this.Player.fetchPlayersInGame(gameID)
-      ).toArray();
+      const players = await this.Player.fetchPlayersInGame(gameID);
       const hands = this.drawInitial10(combinedPack, players.length);
       players.forEach((player, i) => {
         this.Player.updateHand(player.name, gameID, hands[i]);

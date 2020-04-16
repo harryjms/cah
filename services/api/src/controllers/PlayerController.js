@@ -54,7 +54,9 @@ class PlayerController extends CAHController {
     );
 
   fetchPlayersInGame = (gameID) => {
-    return this.db.then((col) => col.find({ game: gameID }));
+    return this.db
+      .then((col) => col.find({ game: gameID, socketID: { $ne: null } }))
+      .then((players) => players.toArray());
   };
 
   //////////////
@@ -62,9 +64,7 @@ class PlayerController extends CAHController {
   //////////////
   emitUpdateAll = async (gameID) => {
     try {
-      const players = await this.fetchPlayersInGame(gameID).then((p) =>
-        p.toArray()
-      );
+      const players = await this.fetchPlayersInGame(gameID);
       players.forEach((player) => {
         this.io.to(player.socketID).emit("PlayerData", player);
       });

@@ -27,7 +27,7 @@ const WhiteCards = () => {
             colour="white"
             onClick={() => handleHandSelection(card)}
             selected={handSelection.includes(card)}
-            cardNumber={cardNumber > 0 && cardNumber}
+            cardNumber={pick > 1 && cardNumber > 0 && cardNumber}
           >
             {card}
           </Card>

@@ -30,6 +30,7 @@ const Game = ({ history }) => {
   // State: The Game
   const [player, setPlayer] = useState({});
   const [game, setGame] = useState(null);
+  const [allPlayers, setAllPlayers] = useState([]);
   const [handSelection, setHandSelection] = useState([]);
 
   // States: UI
@@ -65,6 +66,7 @@ const Game = ({ history }) => {
       socket.on("GameData", handleGameData);
       socket.on("Notification", handleNotification);
       socket.on("PlayerData", handlePlayerData);
+      socket.on("Players", handlePlayersData);
 
       socket.emit("GetGame");
     }
@@ -81,6 +83,12 @@ const Game = ({ history }) => {
     }
   };
 
+  // Updates about all players in game
+  const handlePlayersData = (data) => {
+    setAllPlayers(data);
+  };
+
+  // Update to current Player (me)
   const handlePlayerData = (data) => {
     console.log("PlayerData", player);
     setPlayer(data);
@@ -128,7 +136,7 @@ const Game = ({ history }) => {
 
   return (
     <GameContext.Provider
-      value={{ game, player, handSelection, handleHandSelection }}
+      value={{ game, player, allPlayers, handSelection, handleHandSelection }}
     >
       {loading && <Loading fullScreen>Loading Game...</Loading>}
       {game && (

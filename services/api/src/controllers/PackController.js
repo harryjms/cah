@@ -39,9 +39,7 @@ class PackController extends CAHController {
   fetchSelectedWhiteCards = async (gameID) => {
     try {
       const Player = new PlayerController();
-      const players = await Player.fetchPlayersInGame(gameID).then((players) =>
-        players.toArray()
-      );
+      const players = await Player.fetchPlayersInGame(gameID);
       return players.reduce((aggr, value) => {
         aggr.push(value.selected);
         return aggr;

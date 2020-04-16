@@ -43,7 +43,7 @@ const useStyles = createUseStyles({
 });
 
 const GameBar = () => {
-  const { game, player } = useGameContext();
+  const { game, player, allPlayers } = useGameContext();
   const classes = useStyles();
   const [showInvite, setShowInvite] = useState(false);
   const isHost = game && player && game.host === player.name;
@@ -63,7 +63,10 @@ const GameBar = () => {
       {showInvite && <Invite code={game._id} onDismiss={handleInvite} />}
       <div className="content">
         <h2>
-          {game.name} <span>6 Players | Player State {player.state}</span>
+          {game.name}{" "}
+          <span>
+            {allPlayers.length} {allPlayers.length === 1 ? "Player" : "Players"}
+          </span>
         </h2>
         <div className="buttons">
           <div className="status">
