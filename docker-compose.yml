@@ -27,3 +27,4 @@ services:
       - mongo
     volumes:
       - ./log:/opt/cah/api/log
+      - ./services/api/src/packs:/opt/cah/api/src/packs
