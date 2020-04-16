@@ -3,10 +3,13 @@ const jwt = require("../helpers/jwt");
 const GameController = require("../controllers/GameController");
 const PlayerController = require("../controllers/PlayerController");
 const PackController = require("../controllers/PackController");
+const log = require("log-to-file");
+const path = require("path");
 
 const handleError = (err, req, res, next) => {
   if (err) {
     console.log(err);
+    log(err, path.resolve("/opt/cah/cah.log"));
     res.statusCode = err.statusCode || 500;
     res.send(err);
   }

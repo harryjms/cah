@@ -906,6 +906,11 @@ lodash@^4.17.15:
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.15.tgz#b447f6670a0455bbfeedd11392eff330ea097548"
   integrity sha512-8xOcRHvCjnocdS5cpwXQXVzmmh5e5+saE2QGoeQmbKmRS6J3VQppPOIt0MnmE+4xlZoumy0GPG0D0MVIQbNA1A==
 
+log-to-file@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/log-to-file/-/log-to-file-2.0.2.tgz#7b39a6ca677665136b6aea8253484a52e4b65915"
+  integrity sha512-vEu5phQL1/RvgoPwcyiVO/GJnYiB3m5weri/I/8EUxt9yZcWHVzmpmV+cyO0EOxrWmcFZUkTcxLRWyRmYLouQA==
+
 lowercase-keys@^1.0.0, lowercase-keys@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/lowercase-keys/-/lowercase-keys-1.0.1.tgz#6f9e30b47084d971a7c820ff15a6c5167b74c26f"
