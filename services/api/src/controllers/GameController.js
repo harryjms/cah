@@ -26,7 +26,7 @@ class GameController extends CAHController {
   };
 
   insertGame = (gameName, host, additionalPacks = []) => {
-    let packs = ["base", ...additionalPacks];
+    let packs = ["baseUK", ...additionalPacks];
     const gameData = {
       host,
       name: gameName,
