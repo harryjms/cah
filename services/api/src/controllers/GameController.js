@@ -390,12 +390,13 @@ class GameController extends CAHController {
           throw err;
         }
       }
-
       const { blackCards: allBlackCards } = pack;
       const { blackCards: usedBlackCards } = this.extractUsedCards(game);
+      const usedArray = usedBlackCards.map((a) => a.text);
+
       const availableBlackCards = filter(
         allBlackCards,
-        (a) => !usedBlackCards.includes(a)
+        (a) => !usedArray.includes(a.text)
       );
 
       return availableBlackCards[randomIndex(availableBlackCards.length)];
