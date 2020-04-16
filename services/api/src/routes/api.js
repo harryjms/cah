@@ -9,7 +9,7 @@ const path = require("path");
 const handleError = (err, req, res, next) => {
   if (err) {
     console.log(err);
-    log(err, path.resolve("/opt/cah/cah.log"));
+    log(err, path.resolve("/opt/cah/api/error.log"));
     res.statusCode = err.statusCode || 500;
     res.send(err);
   }

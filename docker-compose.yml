@@ -26,4 +26,4 @@ services:
     depends_on:
       - mongo
     volumes:
-      - ./log/cah.log:/opt/cah/log/cah.log
+      - ./log:/opt/cah/api/log
