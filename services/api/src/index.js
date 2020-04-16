@@ -1,5 +1,9 @@
 const { config } = require("dotenv");
-config({ path: "../../.env" });
+if (process.env.NODE_ENV === "development") {
+  config({ path: "../../.env-dev" });
+} else {
+  config();
+}
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
@@ -23,7 +27,7 @@ io.on("connection", (socket) => {
 });
 
 app.use("/api", cookieParser(), bodyParser.json(), require("./routes/api"));
-
+app.use(express.static("../public/dist"));
 http.listen(SERVER_PORT, () => {
   console.log("Listening on %s...", SERVER_PORT);
 });
