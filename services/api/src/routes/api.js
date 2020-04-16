@@ -34,6 +34,7 @@ module.exports = router.use(
     .post("/game/join", new GameController().postJoinGame)
     .put("/game/start", parseToken, new GameController().putStartGame)
     .post("/game/cards", parseToken, new GameController().postCardSelection)
-    .post("/game/winner", parseToken, new GameController().postSelectWinner),
+    .post("/game/winner", parseToken, new GameController().postSelectWinner)
+    .get("/game/end", parseToken, new GameController().postEndGame),
   handleError
 );

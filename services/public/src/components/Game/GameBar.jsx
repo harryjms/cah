@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { createUseStyles } from "react-jss";
 import axios from "axios";
+import useCookies from "react-cookie";
 import Button from "../Layout/Button";
 import Loading from "../Layout/Loading";
 import Invite from "../Layout/Invite";
@@ -53,6 +54,12 @@ const GameBar = () => {
     setShowInvite((prev) => !prev);
   };
 
+  const handleEnd = () => {
+    axios.get("/api/game/end").catch((err) => {
+      throw new Error(err);
+    });
+  };
+
   const handleStartGame = () => {
     axios.put("/api/game/start").catch((err) => {
       throw new Error(err);
@@ -97,7 +104,7 @@ const GameBar = () => {
                 Start Game
               </Button>
             ) : (
-              <Button>End Game</Button>
+              <Button onClick={handleEnd}>End Game</Button>
             ))}
           {game.gameState === "IDLE" && (
             <Button style={{ width: "auto" }} onClick={handleInvite}>

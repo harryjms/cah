@@ -274,6 +274,25 @@ class GameController extends CAHController {
     }
   };
 
+  postEndGame = async (req, res, next) => {
+    try {
+      const {
+        player: { gameID, isHost },
+      } = req;
+      if (!isHost) {
+        let err = new Error();
+        err.statusCode = 403;
+        err.name = "CANNOT_END_GAME";
+        err.message = "You are not the host so cannt end the game";
+        throw err;
+      }
+      await this.endGame(gameID);
+      res.sendStatus(200);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   ///////////////////////
   /// Socket Handlers ///
   ///////////////////////
@@ -384,22 +403,6 @@ class GameController extends CAHController {
       throw err;
     }
   };
-
-  // drawInitial10 = (pack, playerCount) => {
-  //   const { whiteCards: allWhiteCards } = pack;
-  //   let remainingWhiteCards = [...allWhiteCards];
-  //   let cards = [];
-  //   for (let i = 0; i < playerCount; i++) {
-  //     let hand = [];
-  //     for (let x = 0; x < 10; x++) {
-  //       const cardIndex = randomIndex(remainingWhiteCards.length);
-  //       hand.push(remainingWhiteCards[cardIndex]);
-  //       remainingWhiteCards.splice(cardIndex, 1);
-  //     }
-  //     cards.push(hand);
-  //   }
-  //   return cards;
-  // };
 
   dealWhiteCards = async (gameID, packOverride, emitUpdates = true) => {
     try {
@@ -654,6 +657,29 @@ class GameController extends CAHController {
       // Send updates
       this.emitGameUpdate(gameID);
       this.Player.emitUpdateAll(gameID);
+    } catch (err) {
+      throw err;
+    }
+  };
+  endGame = async (gameID) => {
+    try {
+      const game = await this.findGame(gameID);
+      const newGameData = {
+        ...game,
+        gameState: "ENDED",
+        currentRound: {
+          blackCard: {},
+          whiteCards: [],
+          showBlack: false,
+          showWhite: false,
+          winner: null,
+        },
+        previousRounds: [...game.previousRounds, game.currentRound],
+        ended: moment().toISOString(),
+      };
+      await this.updateGame(gameID, newGameData);
+      this.io.to(gameID).emit("EndGame");
+      return true;
     } catch (err) {
       throw err;
     }

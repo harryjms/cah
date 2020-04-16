@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from "react";
 import { createUseStyles } from "react-jss";
+import { useCookies } from "react-cookie";
 import Rail from "../Layout/Rail";
 import Card from "../Layout/Card";
 import { withRouter } from "react-router-dom";
@@ -12,6 +13,7 @@ import GameBar from "./GameBar";
 import Socket from "../../helpers/socket";
 import Button from "../Layout/Button";
 import WinningHand from "./WinningHand";
+import EndScreen from "./EndScreen";
 
 const GameContext = createContext();
 export const useGameContext = () => useContext(GameContext);
@@ -33,12 +35,14 @@ const Game = ({ history }) => {
   const [game, setGame] = useState(null);
   const [allPlayers, setAllPlayers] = useState([]);
   const [handSelection, setHandSelection] = useState([]);
+  const [cookies, setCookie, removeCookie] = useCookies();
 
   // States: UI
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [connectionLost, setConnectionLost] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  const [endScreen, setEndScreen] = useState(false);
   const classes = useStyles();
 
   useEffect(() => {
@@ -68,6 +72,10 @@ const Game = ({ history }) => {
       socket.on("Notification", handleNotification);
       socket.on("PlayerData", handlePlayerData);
       socket.on("Players", handlePlayersData);
+      socket.on("EndGame", () => {
+        removeCookie("token");
+        setEndScreen(true);
+      });
 
       socket.emit("GetGame");
     }
@@ -134,7 +142,9 @@ const Game = ({ history }) => {
         setHandSelection([]);
       });
   };
-
+  if (endScreen) {
+    return <EndScreen />;
+  }
   return (
     <GameContext.Provider
       value={{ game, player, allPlayers, handSelection, handleHandSelection }}
