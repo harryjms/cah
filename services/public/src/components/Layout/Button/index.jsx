@@ -11,8 +11,9 @@ const useStyles = createUseStyles({
     fontWeight: "bold",
     borderRadius: 8,
     outline: "none",
+    transition: "all 0.2s ease-in-out",
     "&:hover:not(:active):not(:disabled)": {
-      opacity: 0.8,
+      backgroundColor: "#3a3a3a",
       cursor: "pointer",
     },
     borderWidth: 1,
