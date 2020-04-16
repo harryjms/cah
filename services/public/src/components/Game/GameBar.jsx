@@ -18,6 +18,7 @@ const useStyles = createUseStyles({
     "& .buttons": {
       display: "flex",
       whiteSpace: "nowrap",
+      alignItems: "center",
       "& .status": {
         marginRight: 5,
       },
@@ -70,13 +71,31 @@ const GameBar = () => {
         </h2>
         <div className="buttons">
           <div className="status">
-            {game.gameState === "IDLE" && (
-              <Loading>Waiting for game to start...</Loading>
+            {game.gameState === "IDLE" ? (
+              <Loading>
+                {allPlayers.length < 2
+                  ? "Waiting for more players... "
+                  : "Waiting for game to start..."}
+              </Loading>
+            ) : (
+              player.state === "CZAR" && (
+                <div
+                  style={{ fontSize: "20pt", marginRight: 5 }}
+                  title="You will choose the winning combination this round."
+                >
+                  👑
+                </div>
+              )
             )}
           </div>
           {isHost &&
             (game.gameState === "IDLE" ? (
-              <Button onClick={handleStartGame}>Start Game</Button>
+              <Button
+                onClick={handleStartGame}
+                disabled={allPlayers.length < 2}
+              >
+                Start Game
+              </Button>
             ) : (
               <Button>End Game</Button>
             ))}

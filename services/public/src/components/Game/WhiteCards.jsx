@@ -17,6 +17,8 @@ const WhiteCards = () => {
     },
   } = game;
 
+  const canSelect = player.state === "SELECTING";
+
   return (
     <Rail>
       {player.hand.map((card) => {
@@ -25,7 +27,7 @@ const WhiteCards = () => {
           <Card
             key={card}
             colour="white"
-            onClick={() => handleHandSelection(card)}
+            onClick={canSelect ? () => handleHandSelection(card) : null}
             selected={handSelection.includes(card)}
             cardNumber={pick > 1 && cardNumber > 0 && cardNumber}
           >

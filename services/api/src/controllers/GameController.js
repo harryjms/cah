@@ -98,7 +98,11 @@ class GameController extends CAHController {
       }
 
       const game = await this.insertGame(gameName, screenName, packs);
-      const player = await this.Player.insertPlayer(screenName, game._id);
+      const player = await this.Player.insertPlayer(
+        screenName,
+        game._id,
+        "CZAR"
+      );
       if (player) {
         const token = this.Player.createToken(game, screenName);
         res.cookie("token", token);
@@ -210,18 +214,30 @@ class GameController extends CAHController {
       const { gameID, name: screenName } = req.player;
       const { handSelection } = req.body;
 
-      // 1. Update the cards in the players hand
+      // Update the cards in the players hand
       await this.Player.updateCardSelection(screenName, gameID, handSelection);
 
-      // 2. Get white cards in game
+      // Get white cards in game & game data
       const cards = await this.Pack.fetchSelectedWhiteCards(gameID);
       const game = await this.findGame(gameID);
+
+      // Put the cards into the game
       await this.updateGame(gameID, {
         currentRound: { ...game.currentRound, whiteCards: cards },
       });
+
+      // Update the player, marking them as having selected their cards
       await this.Player.updatePlayer(screenName, gameID, { state: "SELECTED" });
+
+      // Send out updated game data
       this.emitGameUpdate(gameID);
+
+      // Send out updated player states
       this.Player.emitUpdateAll(gameID);
+
+      // Check if game state can progress
+      await this.gameProgressManager(gameID);
+
       res.sendStatus(200);
     } catch (err) {
       next(err);
@@ -409,11 +425,44 @@ class GameController extends CAHController {
     }
   };
 
+  gameProgressManager = async (gameID) => {
+    try {
+      const game = await this.findGame(gameID);
+      if (!game) {
+        let err = new Error();
+        err.statusCode = 404;
+        err.name = "GAME_NOT_FOUND";
+        err.message = "The game could not be found";
+        throw err;
+      }
+
+      const players = await this.Player.fetchPlayersInGame(gameID);
+
+      /**
+       * 1. All players have chosen
+       */
+      const playersCount = players.length;
+      const playersSelectedCount = players
+        .map((p) => p.state)
+        .filter((s) => s === "SELECTED").length;
+      // We minus one because there's always one player not selecting as they're choosing the best combination!
+      if (
+        playersSelectedCount === playersCount - 1 &&
+        game.gameState !== "READING"
+      ) {
+        await this.setGameStateReading(gameID);
+      }
+    } catch (err) {
+      throw err;
+    }
+  };
+
   setGameStateSelecting = async (gameID) => {
     try {
       await this.updateGame(gameID, { gameState: "SELECTING" });
       await this.Player.updatePlayersInGame(gameID, { state: "SELECTING" });
       this.Player.emitUpdateAll(gameID);
+      this.emitGameUpdate(gameID);
     } catch (err) {
       throw err;
     }
@@ -421,9 +470,14 @@ class GameController extends CAHController {
 
   setGameStateReading = async (gameID) => {
     try {
-      await this.updateGame(gameID, { gameState: "READING" });
+      const game = await this.findGame(gameID);
+      await this.updateGame(gameID, {
+        gameState: "READING",
+        currentRound: { ...game.currentRound, showWhite: true },
+      });
       await this.Player.updatePlayersInGame(gameID, { state: "IDLE" });
       this.Player.emitUpdateAll(gameID);
+      this.emitGameUpdate(gameID);
     } catch (err) {
       throw err;
     }

@@ -50,7 +50,10 @@ class PlayerController extends CAHController {
 
   updatePlayersInGame = (gameID, changes) =>
     this.db.then((col) =>
-      col.updateMany({ game: gameID }, { $set: { ...changes } })
+      col.updateMany(
+        { game: gameID, state: { $ne: "CZAR" } },
+        { $set: { ...changes } }
+      )
     );
 
   fetchPlayersInGame = (gameID) => {
