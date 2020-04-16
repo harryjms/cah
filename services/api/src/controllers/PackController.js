@@ -41,7 +41,9 @@ class PackController extends CAHController {
       const Player = new PlayerController();
       const players = await Player.fetchPlayersInGame(gameID);
       return players.reduce((aggr, value) => {
-        aggr.push(value.selected);
+        if (value.selected && value.selected.length > 0) {
+          aggr.push(value.selected);
+        }
         return aggr;
       }, []);
     } catch (err) {

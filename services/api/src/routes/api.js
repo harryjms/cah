@@ -33,6 +33,7 @@ module.exports = router.use(
     .post("/game", new GameController().postNewGame)
     .post("/game/join", new GameController().postJoinGame)
     .put("/game/start", parseToken, new GameController().putStartGame)
-    .post("/game/cards", parseToken, new GameController().postCardSelection),
+    .post("/game/cards", parseToken, new GameController().postCardSelection)
+    .post("/game/winner", parseToken, new GameController().postSelectWinner),
   handleError
 );

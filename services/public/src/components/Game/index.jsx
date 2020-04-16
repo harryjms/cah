@@ -11,6 +11,7 @@ import WhiteCards from "./WhiteCards";
 import GameBar from "./GameBar";
 import Socket from "../../helpers/socket";
 import Button from "../Layout/Button";
+import WinningHand from "./WinningHand";
 
 const GameContext = createContext();
 export const useGameContext = () => useContext(GameContext);
@@ -153,6 +154,7 @@ const Game = ({ history }) => {
             <PlayedCards />
           </Rail>
           <WhiteCards />
+          {game.gameState === "WINNER" && <WinningHand />}
           {handSelection.length === game.currentRound.blackCard.pick && (
             <div className={classes.ConfirmButton}>
               <Button onClick={handleConfirmSelection} disabled={confirming}>

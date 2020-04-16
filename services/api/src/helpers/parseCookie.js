@@ -4,7 +4,7 @@ module.exports = cookie.parse;
 
 module.exports.parseFromSocket = (socket) => {
   try {
-    const c = cookie.parse(socket.client.request.headers.cookie);
+    const c = cookie.parse(socket.client.request.headers.cookie || "");
 
     const payload = jwt.verifyToken(c["token"]);
     return payload;

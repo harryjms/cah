@@ -3,6 +3,9 @@ const PlayerController = require("./PlayerController");
 const PackController = require("./PackController");
 const moment = require("moment").utc;
 const filter = require("lodash/filter");
+const findIndex = require("lodash/findIndex");
+const reduce = require("lodash/reduce");
+const flattenDeep = require("lodash/flattenDeep");
 
 const randomIndex = (max) => Math.floor(Math.random() * max + 1) - 1;
 
@@ -49,8 +52,6 @@ class GameController extends CAHController {
       col.updateOne({ _id: this.ObjectID(gameID) }, { $set: { ...changes } })
     );
   };
-
-  fetchWaitingFor = (gameID) => {};
 
   //////////////////////
   /// REST Endpoints ///
@@ -244,6 +245,35 @@ class GameController extends CAHController {
     }
   };
 
+  /**
+   * POST /api/game/winner
+   */
+  postSelectWinner = async (req, res, next) => {
+    try {
+      const {
+        player: { name, gameID },
+        body: { hand },
+      } = req;
+
+      const game = await this.findGame(gameID);
+      const player = await this.Player.findPlayer(name, gameID);
+
+      if (player.state !== "CZAR") {
+        let err = new Error();
+        err.statusCode = 403;
+        err.name = "NOT_CZAR";
+        err.message =
+          "You are not able to select the winning hand as you are not the Czar.";
+        throw err;
+      }
+
+      await this.setGameWinner(gameID, hand);
+      res.sendStatus(200);
+    } catch (err) {
+      next(err);
+    }
+  };
+
   ///////////////////////
   /// Socket Handlers ///
   ///////////////////////
@@ -316,8 +346,8 @@ class GameController extends CAHController {
     try {
       return game.previousRounds.reduce(
         (aggr, value) => {
-          const { blackCards, whiteCards } = value;
-          aggr.blackCards = [...aggr.blackCards, ...blackCards];
+          const { blackCard, whiteCards } = value;
+          aggr.blackCards.push(blackCard);
           aggr.whiteCards = [...aggr.whiteCards, ...whiteCards];
           return aggr;
         },
@@ -355,20 +385,103 @@ class GameController extends CAHController {
     }
   };
 
-  drawInitial10 = (pack, playerCount) => {
-    const { whiteCards: allWhiteCards } = pack;
-    let remainingWhiteCards = [...allWhiteCards];
-    let cards = [];
-    for (let i = 0; i < playerCount; i++) {
-      let hand = [];
-      for (let x = 0; x < 10; x++) {
-        const cardIndex = randomIndex(remainingWhiteCards.length);
-        hand.push(remainingWhiteCards[cardIndex]);
-        remainingWhiteCards.splice(cardIndex, 1);
+  // drawInitial10 = (pack, playerCount) => {
+  //   const { whiteCards: allWhiteCards } = pack;
+  //   let remainingWhiteCards = [...allWhiteCards];
+  //   let cards = [];
+  //   for (let i = 0; i < playerCount; i++) {
+  //     let hand = [];
+  //     for (let x = 0; x < 10; x++) {
+  //       const cardIndex = randomIndex(remainingWhiteCards.length);
+  //       hand.push(remainingWhiteCards[cardIndex]);
+  //       remainingWhiteCards.splice(cardIndex, 1);
+  //     }
+  //     cards.push(hand);
+  //   }
+  //   return cards;
+  // };
+
+  dealWhiteCards = async (gameID, packOverride, emitUpdates = true) => {
+    try {
+      const game = await this.findGame(gameID);
+
+      if (!game) {
+        let err = new Error();
+        err.statusCode = 404;
+        err.name = "GAME_NOT_FOUND";
+        err.message = "The requested game could not be found";
+        throw err;
       }
-      cards.push(hand);
+
+      const players = await this.Player.fetchPlayersInGame(gameID);
+
+      if (!players) {
+        let err = new Error();
+        err.statusCode = 404;
+        err.name = "PLAYERS_NOT_FOUND";
+        err.message = "No players found for game " + gameID;
+        throw err;
+      }
+
+      let pack = packOverride;
+      if (!pack) {
+        pack = await this.Pack.fetchCachedPack(game.packID);
+
+        if (!pack) {
+          let err = new Error();
+          err.statusCode = 404;
+          err.name = "PACK_NOT_FOUND";
+          err.message = `Pack ${game.packID} could not be found`;
+          throw err;
+        }
+      }
+
+      // Get array of white cards used from the previous rounds
+      let playedWhite = [];
+      if (game.previousRounds.length > 0) {
+        playedWhite = reduce(
+          game.previousRounds,
+          (aggr, value, key) => {
+            aggr.push(flattenDeep(value.whiteCards));
+            return aggr;
+          },
+          []
+        );
+      }
+
+      // Remove the cards used from the cards in the original pack
+      let availableWhite = [...pack.whiteCards].filter(
+        (a) => !playedWhite.includes(a)
+      );
+
+      // For each player, work out how many cards they now need,
+      // and assign them from the cards available, removing the
+      // card from the array as we go
+      await Promise.all(
+        players.map(async (player) => {
+          let cardsNeeded = 10 - player.hand.length;
+          let newHand = [...player.hand];
+          while (cardsNeeded > 0) {
+            const dealIndex = randomIndex(availableWhite.length);
+            newHand.push(availableWhite[dealIndex]);
+            availableWhite.splice(dealIndex, 1);
+            cardsNeeded--;
+          }
+
+          return await this.Player.updatePlayer(player.name, gameID, {
+            hand: newHand,
+            selected: [],
+          });
+        })
+      );
+
+      // Push out new hands to all players
+      if (emitUpdates) {
+        this.Player.emitUpdateAll(gameID);
+      }
+    } catch (err) {
+      throw err;
     }
-    return cards;
   };
 
   startGame = async (gameID) => {
@@ -404,11 +517,7 @@ class GameController extends CAHController {
       );
 
       // 3. Generate white cards for every player
-      const players = await this.Player.fetchPlayersInGame(gameID);
-      const hands = this.drawInitial10(combinedPack, players.length);
-      players.forEach((player, i) => {
-        this.Player.updateHand(player.name, gameID, hands[i]);
-      });
+      await this.dealWhiteCards(gameID, combinedPack, false);
 
       // 4. Commit to DB and send update to clients
       await this.updateGame(gameID, { ...newGameData });
@@ -478,6 +587,73 @@ class GameController extends CAHController {
       await this.Player.updatePlayersInGame(gameID, { state: "IDLE" });
       this.Player.emitUpdateAll(gameID);
       this.emitGameUpdate(gameID);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  setGameWinner = async (gameID, winner) => {
+    try {
+      const game = await this.findGame(gameID);
+      await this.updateGame(gameID, {
+        gameState: "WINNER",
+        currentRound: {
+          ...game.currentRound,
+          winner,
+        },
+      });
+      this.emitGameUpdate(gameID);
+
+      setTimeout(() => {
+        this.nextRound(gameID);
+      }, 10000);
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  nextRound = async (gameID) => {
+    try {
+      const game = await this.findGame(gameID);
+      const players = await this.Player.fetchPlayersInGame(gameID);
+
+      // Assign next czar
+      const currentCzarIndex = findIndex(players, (p) => p.state === "CZAR");
+      let nextCzar;
+      if (currentCzarIndex === players.length - 1) {
+        nextCzar = players[0].name;
+      } else {
+        nextCzar = players[currentCzarIndex + 1].name;
+      }
+
+      await this.Player.updatePlayer(players[currentCzarIndex].name, gameID, {
+        state: "IDLE",
+      });
+      await this.Player.updatePlayer(nextCzar, gameID, { state: "CZAR" });
+      await this.Player.updatePlayersInGame(gameID, { state: "SELECTING" });
+      await this.dealWhiteCards(gameID, null, false);
+
+      const nextGame = {
+        ...game,
+        gameState: "SELECTING",
+        currentRound: {
+          blackCard: await this.selectBlackCard(game),
+          whiteCards: [],
+          showBlack: true,
+          showWhite: false,
+          winner: null,
+        },
+        previousRounds: [
+          ...game.previousRounds,
+          { ...game.currentRound, czar: players[currentCzarIndex].name },
+        ],
+      };
+
+      await this.updateGame(gameID, nextGame);
+
+      // Send updates
+      this.emitGameUpdate(gameID);
+      this.Player.emitUpdateAll(gameID);
     } catch (err) {
       throw err;
     }

@@ -21,6 +21,9 @@ const useStyles = createUseStyles((theme) => ({
       height: 222.22222215,
       fontSize: "13pt",
     },
+    "&:last-child": {
+      marginRight: 20,
+    },
     "& img": {
       display: "block",
       opacity: 0,
@@ -107,6 +110,7 @@ const Card = ({
   onClick,
   selected,
   cardNumber,
+  style,
 }) => {
   let selectable = typeof onClick === "function";
   const classes = useStyles({ selectable });
@@ -123,6 +127,7 @@ const Card = ({
         .join(" ")}
       onClick={onClick}
       ref={innerRef}
+      style={style}
     >
       <div className="inner">
         <div className="front">

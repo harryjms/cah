@@ -4,6 +4,7 @@ import Card from "../Layout/Card";
 import CardStack from "../Layout/CardStack";
 import Button from "../Layout/Button";
 import { useGameContext } from ".";
+import axios from "axios";
 
 const useStyles = createUseStyles({
   CardOption: {
@@ -42,9 +43,16 @@ const PlayedCards = () => {
       setSpread(null);
     }
   };
+
+  const handleSelectWinner = (hand) => {
+    axios.post("/api/game/winner", { hand }).catch((err) => {
+      console.error(err);
+      alert(err.response.data.message);
+    });
+  };
   return whiteCards.map((card, i) => {
     return (
-      <div className={classes.CardOption}>
+      <div className={classes.CardOption} key={i}>
         <div className="cards">
           {Array.isArray(card) ? (
             <CardStack
@@ -71,7 +79,7 @@ const PlayedCards = () => {
         </div>
         {player.state === "CZAR" && (
           <div className="button">
-            <Button>Select</Button>
+            <Button onClick={() => handleSelectWinner(card)}>Select</Button>
           </div>
         )}
       </div>
