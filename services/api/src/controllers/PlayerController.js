@@ -19,6 +19,10 @@ class PlayerController extends CAHController {
     );
   };
 
+  findPlayerByCardSelection = (gameID, selected) => {
+    return this.db.then((col) => col.findOne({ game: gameID, selected }));
+  };
+
   insertPlayer = (screenName, gameID, state = "IDLE") => {
     return this.db.then((col) =>
       col.insertOne({

@@ -267,7 +267,16 @@ class GameController extends CAHController {
         throw err;
       }
 
-      await this.setGameWinner(gameID, hand);
+      const winningPlayer = await this.Player.findPlayerByCardSelection(
+        gameID,
+        hand
+      );
+
+      await this.setGameWinner(gameID, {
+        screenName: winningPlayer.name,
+        hand,
+      });
+
       res.sendStatus(200);
     } catch (err) {
       next(err);
@@ -662,6 +671,7 @@ class GameController extends CAHController {
       throw err;
     }
   };
+
   endGame = async (gameID) => {
     try {
       const game = await this.findGame(gameID);
