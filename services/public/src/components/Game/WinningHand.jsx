@@ -17,15 +17,22 @@ const WinningHand = () => {
   const {
     currentRound: { blackCard, winner },
   } = game;
+  if (!winner) {
+    return null;
+  }
+  const { screenName, hand } = winner;
   return (
     <Fullscreen>
       <div className={classes.Winning}>
-        <h2 style={{ marginLeft: 20 }}>Winning Hand</h2>
+        <h2 style={{ marginLeft: 20 }}>
+          Winning Hand -{" "}
+          <span style={{ fontWeight: "normal" }}>{screenName}</span>
+        </h2>
         <Rail>
           <Card colour="black" style={{ marginLeft: 20 }}>
             {blackCard.text}
           </Card>
-          {winner.map((card) => (
+          {hand.map((card) => (
             <Card colour="white" key={card}>
               {card}
             </Card>

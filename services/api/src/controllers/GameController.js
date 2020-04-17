@@ -38,7 +38,10 @@ class GameController extends CAHController {
         whiteCards: [],
         showBlack: false,
         showWhite: false,
-        winner: null,
+        winner: {
+          screenName: null,
+          hand: [],
+        },
       },
       previousRounds: [],
     };
@@ -683,7 +686,10 @@ class GameController extends CAHController {
           whiteCards: [],
           showBlack: false,
           showWhite: false,
-          winner: null,
+          winner: {
+            screenName: null,
+            hand: [],
+          },
         },
         previousRounds: [...game.previousRounds, game.currentRound],
         ended: moment().toISOString(),
