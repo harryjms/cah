@@ -689,7 +689,9 @@ class GameController extends CAHController {
       // Assign next czar
       const currentCzarIndex = findIndex(players, (p) => p.state === "CZAR");
       let nextCzar;
-      if (currentCzarIndex === players.length - 1) {
+      if (currentCzarIndex === -1) {
+        nextCzar = players[randomIndex(players.length)].name;
+      } else if (currentCzarIndex === players.length - 1) {
         nextCzar = players[0].name;
       } else {
         nextCzar = players[currentCzarIndex + 1].name;
