@@ -56,6 +56,59 @@ class GameController extends CAHController {
     );
   };
 
+  fetchGameWinners = (gameID) => {
+    return this.db()
+      .then((col) =>
+        col.aggregate([
+          {
+            $match: {
+              _id: this.ObjectID(gameID),
+            },
+          },
+          {
+            $project: {
+              _id: 1.0,
+              winners: {
+                $reduce: {
+                  input: "$previousRounds.winner",
+                  initialValue: [],
+                  in: {
+                    $concatArrays: ["$$value", ["$$this.screenName"]],
+                  },
+                },
+              },
+            },
+          },
+          {
+            $unwind: {
+              path: "$winners",
+            },
+          },
+          {
+            $group: {
+              _id: "$winners",
+              count: {
+                $sum: 1.0,
+              },
+            },
+          },
+          {
+            $sort: {
+              count: -1.0,
+            },
+          },
+          {
+            $project: {
+              _id: 0.0,
+              screenName: "$_id",
+              roundsWon: "$count",
+            },
+          },
+        ])
+      )
+      .then((results) => results.toArray());
+  };
+
   //////////////////////
   /// REST Endpoints ///
   //////////////////////
@@ -695,7 +748,8 @@ class GameController extends CAHController {
         ended: moment().toISOString(),
       };
       await this.updateGame(gameID, newGameData);
-      this.io.to(gameID).emit("EndGame");
+      const winners = await this.fetchGameWinners(gameID);
+      this.io.to(gameID).emit("EndGame", winners);
       return true;
     } catch (err) {
       throw err;

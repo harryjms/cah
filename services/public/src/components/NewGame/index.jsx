@@ -7,13 +7,19 @@ import TextField from "../Layout/TextField";
 import Button from "../Layout/Button";
 import Banner from "../Layout/Banner";
 import Loading from "../Layout/Loading";
+import { useCookies } from "react-cookie";
 
 const NewGame = ({ history }) => {
+  const [cookies, setCookie, removeCookie] = useCookies();
   const [gameName, setGameName] = useState("");
   const [screenName, setScreenName] = useState("");
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const canSave = screenName !== "" && gameName !== "";
+
+  useEffect(() => {
+    removeCookie("token");
+  }, []);
 
   const handleGameName = (e) => {
     setGameName(e.target.value);

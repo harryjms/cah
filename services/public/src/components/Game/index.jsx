@@ -33,6 +33,7 @@ const Game = ({ history }) => {
   // State: The Game
   const [player, setPlayer] = useState({});
   const [game, setGame] = useState(null);
+  const [winners, setWinners] = useState([]);
   const [allPlayers, setAllPlayers] = useState([]);
   const [handSelection, setHandSelection] = useState([]);
   const [cookies, setCookie, removeCookie] = useCookies();
@@ -72,8 +73,9 @@ const Game = ({ history }) => {
       socket.on("Notification", handleNotification);
       socket.on("PlayerData", handlePlayerData);
       socket.on("Players", handlePlayersData);
-      socket.on("EndGame", () => {
+      socket.on("EndGame", (winners) => {
         removeCookie("token");
+        setWinners(winners.filter((a) => a.screenName));
         setEndScreen(true);
       });
 
@@ -142,45 +144,58 @@ const Game = ({ history }) => {
         setHandSelection([]);
       });
   };
-  if (endScreen) {
-    return <EndScreen />;
-  }
   return (
     <GameContext.Provider
-      value={{ game, player, allPlayers, handSelection, handleHandSelection }}
+      value={{
+        game,
+        player,
+        winners,
+        allPlayers,
+        handSelection,
+        handleHandSelection,
+      }}
     >
-      {loading && <Loading fullScreen>Loading Game...</Loading>}
-      {game && (
+      {endScreen ? (
+        <EndScreen />
+      ) : (
         <>
-          <GameBar />
-          <Rail>
-            <Card
-              colour="black"
-              hideValue={!game.currentRound.showBlack}
-              pick={game.currentRound.blackCard.pick}
-            >
-              {game.currentRound.blackCard.text}
-            </Card>
-            <PlayedCards />
-          </Rail>
-          <WhiteCards />
-          {game.gameState === "WINNER" && <WinningHand />}
-          {handSelection.length === game.currentRound.blackCard.pick && (
-            <div className={classes.ConfirmButton}>
-              <Button onClick={handleConfirmSelection} disabled={confirming}>
-                {confirming ? "Confirming..." : "Confirm Selection"}
-              </Button>
-            </div>
+          {loading && <Loading fullScreen>Loading Game...</Loading>}
+          {game && (
+            <>
+              <GameBar />
+              <Rail>
+                <Card
+                  colour="black"
+                  hideValue={!game.currentRound.showBlack}
+                  pick={game.currentRound.blackCard.pick}
+                >
+                  {game.currentRound.blackCard.text}
+                </Card>
+                <PlayedCards />
+              </Rail>
+              <WhiteCards />
+              {game.gameState === "WINNER" && <WinningHand />}
+              {handSelection.length === game.currentRound.blackCard.pick && (
+                <div className={classes.ConfirmButton}>
+                  <Button
+                    onClick={handleConfirmSelection}
+                    disabled={confirming}
+                  >
+                    {confirming ? "Confirming..." : "Confirm Selection"}
+                  </Button>
+                </div>
+              )}
+              {notifications.map((not, i) => (
+                <Notification key={i} show>
+                  {not}
+                </Notification>
+              ))}
+            </>
           )}
-          {notifications.map((not, i) => (
-            <Notification key={i} show>
-              {not}
-            </Notification>
-          ))}
+          {connectionLost && (
+            <Loading fullScreen>Reconnecting to server...</Loading>
+          )}
         </>
-      )}
-      {connectionLost && (
-        <Loading fullScreen>Reconnecting to server...</Loading>
       )}
     </GameContext.Provider>
   );
