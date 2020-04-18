@@ -30,6 +30,12 @@ const WhiteCards = () => {
             onClick={canSelect ? () => handleHandSelection(card) : null}
             selected={handSelection.includes(card)}
             cardNumber={pick > 1 && cardNumber > 0 && cardNumber}
+            style={{
+              ...(player.state !== "SELECTING" && {
+                opacity: 0.4,
+                cursor: "default",
+              }),
+            }}
           >
             {card}
           </Card>

@@ -13,7 +13,7 @@ const useStyles = createUseStyles((theme) => ({
     whiteSpace: "normal",
     position: "relative",
     perspective: 1000,
-    transition: "margin-top 0.2s ease-in-out",
+    transition: "all 0.2s ease-in-out",
     userSelect: "none",
     [theme.mediaQuery.iPhone8]: {
       width: 150,
