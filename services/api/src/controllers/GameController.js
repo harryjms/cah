@@ -455,6 +455,7 @@ class GameController extends CAHController {
           throw err;
         }
       }
+
       const { blackCards: allBlackCards } = pack;
       const { blackCards: usedBlackCards } = this.extractUsedCards(game);
       const usedArray = usedBlackCards.map((a) => a.text);
@@ -592,7 +593,11 @@ class GameController extends CAHController {
       await this.updateGame(gameID, { ...newGameData });
 
       // 5. Set players status
-      await this.Player.updatePlayersInGame(gameID, { state: "SELECTING" });
+      await this.Player.updatePlayersInGame(
+        gameID,
+        { state: "SELECTING" },
+        { state: { $ne: "CZAR" } }
+      );
       this.Player.emitUpdateAll(gameID);
     } catch (err) {
       if (typeof err === "Error") {
@@ -638,7 +643,11 @@ class GameController extends CAHController {
   setGameStateSelecting = async (gameID) => {
     try {
       await this.updateGame(gameID, { gameState: "SELECTING" });
-      await this.Player.updatePlayersInGame(gameID, { state: "SELECTING" });
+      await this.Player.updatePlayersInGame(
+        gameID,
+        { state: "SELECTING" },
+        { state: { $ne: "CZAR" } }
+      );
       this.Player.emitUpdateAll(gameID);
       this.emitGameUpdate(gameID);
     } catch (err) {
@@ -653,7 +662,11 @@ class GameController extends CAHController {
         gameState: "READING",
         currentRound: { ...game.currentRound, showWhite: true },
       });
-      await this.Player.updatePlayersInGame(gameID, { state: "IDLE" });
+      await this.Player.updatePlayersInGame(
+        gameID,
+        { state: "IDLE" },
+        { state: { $ne: "CZAR" } }
+      );
       this.Player.emitUpdateAll(gameID);
       this.emitGameUpdate(gameID);
     } catch (err) {
@@ -685,18 +698,23 @@ class GameController extends CAHController {
     try {
       const game = await this.findGame(gameID);
       const players = await this.Player.fetchPlayersInGame(gameID);
+      const currentCzarIndex = findIndex(players, (p) => p.state === "CZAR");
 
       // Assign next czar
       await this.Player.selectNextCzar(gameID);
 
-      await this.Player.updatePlayersInGame(gameID, { state: "SELECTING" });
+      await this.Player.updatePlayersInGame(
+        gameID,
+        { state: "SELECTING" },
+        { state: { $ne: "CZAR" } }
+      );
       await this.dealWhiteCards(gameID, null, false);
 
-      const nextGame = {
+      let nextGame = {
         ...game,
         gameState: "SELECTING",
         currentRound: {
-          blackCard: await this.selectBlackCard(game),
+          blackCard: null,
           whiteCards: [],
           showBlack: true,
           showWhite: false,
@@ -707,6 +725,9 @@ class GameController extends CAHController {
           { ...game.currentRound, czar: players[currentCzarIndex].name },
         ],
       };
+
+      const nextBlackCard = await this.selectBlackCard(nextGame);
+      nextGame.currentRound.blackCard = nextBlackCard;
 
       await this.updateGame(gameID, nextGame);
 
