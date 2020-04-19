@@ -1,15 +1,21 @@
-name: deploy update
-on: [push]
+name: Deploy master
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  release:
+    types: [created]
 jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
     steps:
-    - name: rebuild server
-      uses: appleboy/ssh-action@master
-      with:
-        host: cah.harryjms.uk
-        username: ubuntu
-        key: ${{ secrets.EC2_KEY }}
-        port: 22
-        script: cd /opt/cah && git fetch && git reset --hard origin/master && docker-compose up --build -d api
+      - name: rebuild server
+        uses: appleboy/ssh-action@master
+        with:
+          host: cah.harryjms.uk
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          port: 22
+          script: cd /opt/cah && git fetch && git reset --hard origin/master && docker-compose up --build -d api
