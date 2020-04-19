@@ -687,20 +687,8 @@ class GameController extends CAHController {
       const players = await this.Player.fetchPlayersInGame(gameID);
 
       // Assign next czar
-      const currentCzarIndex = findIndex(players, (p) => p.state === "CZAR");
-      let nextCzar;
-      if (currentCzarIndex === -1) {
-        nextCzar = players[randomIndex(players.length)].name;
-      } else if (currentCzarIndex === players.length - 1) {
-        nextCzar = players[0].name;
-      } else {
-        nextCzar = players[currentCzarIndex + 1].name;
-      }
+      await this.Player.selectNextCzar(gameID);
 
-      await this.Player.updatePlayer(players[currentCzarIndex].name, gameID, {
-        state: "IDLE",
-      });
-      await this.Player.updatePlayer(nextCzar, gameID, { state: "CZAR" });
       await this.Player.updatePlayersInGame(gameID, { state: "SELECTING" });
       await this.dealWhiteCards(gameID, null, false);
 

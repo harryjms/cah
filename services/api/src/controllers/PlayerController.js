@@ -177,7 +177,7 @@ class PlayerController extends CAHController {
 
       let nextIndex = randomIndex(players.length);
 
-      if (nextIndex > players.length) {
+      if (nextIndex > players.length - 1) {
         nextIndex = 0;
       }
 
