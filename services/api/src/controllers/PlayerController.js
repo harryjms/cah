@@ -108,7 +108,10 @@ class PlayerController extends CAHController {
           await this.selectNextCzar(gameID);
         }
       }
-      await this.updatePlayer(screenName, gameID, { socketID: null });
+      await this.updatePlayer(screenName, gameID, {
+        socketID: null,
+        selection: [],
+      });
       this.emitUpdateAll(gameID);
     } catch (err) {
       throw err;
