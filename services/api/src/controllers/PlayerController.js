@@ -55,12 +55,9 @@ class PlayerController extends CAHController {
     );
   };
 
-  updatePlayersInGame = (gameID, changes) =>
+  updatePlayersInGame = (gameID, changes, where) =>
     this.db.then((col) =>
-      col.updateMany(
-        { game: gameID, state: { $ne: "CZAR" } },
-        { $set: { ...changes } }
-      )
+      col.updateMany({ game: gameID, ...where }, { $set: { ...changes } })
     );
 
   fetchPlayersInGame = (gameID) => {
@@ -111,7 +108,10 @@ class PlayerController extends CAHController {
           await this.selectNextCzar(gameID);
         }
       }
-      await this.updatePlayer(screenName, gameID, { socketID: null });
+      await this.updatePlayer(screenName, gameID, {
+        socketID: null,
+        selection: [],
+      });
       this.emitUpdateAll(gameID);
     } catch (err) {
       throw err;
@@ -172,17 +172,19 @@ class PlayerController extends CAHController {
     try {
       const players = filter(
         await this.fetchPlayersInGame(gameID),
-        (p) => p.state === "CZAR"
+        (p) => p.state !== "CZAR"
       );
 
       let nextIndex = randomIndex(players.length);
 
-      if (nextIndex > players.length) {
+      if (nextIndex > players.length - 1) {
         nextIndex = 0;
       }
 
       await this.updatePlayersInGame(gameID, { state: "IDLE" });
-      await this.updatePlayer(players[nextIndex].name, { state: "CZAR" });
+      await this.updatePlayer(players[nextIndex].name, gameID, {
+        state: "CZAR",
+      });
 
       return players[nextIndex];
     } catch (err) {
