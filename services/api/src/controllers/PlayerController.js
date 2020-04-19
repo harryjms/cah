@@ -1,7 +1,10 @@
 const CAHController = require("./CAHController");
 const GameController = require("./GameController");
 
+const findIndex = require("lodash/findIndex");
+const filter = require("lodash/filter");
 const moment = require("moment").utc;
+const randomIndex = (max) => Math.floor(Math.random() * max + 1) - 1;
 
 class PlayerController extends CAHController {
   constructor() {
@@ -102,7 +105,14 @@ class PlayerController extends CAHController {
 
   leaveGame = async (screenName, gameID) => {
     try {
-      return await this.updatePlayer(screenName, gameID, { socketID: null });
+      const player = await this.findPlayer(screenName, gameID);
+      if (player) {
+        if (player.state === "CZAR") {
+          await this.selectNextCzar(gameID);
+        }
+      }
+      await this.updatePlayer(screenName, gameID, { socketID: null });
+      this.emitUpdateAll(gameID);
     } catch (err) {
       throw err;
     }
@@ -153,6 +163,28 @@ class PlayerController extends CAHController {
         .to(player.socketID)
         .emit("PlayerData", { ...player, hand: newHand, selected: selection });
       return true;
+    } catch (err) {
+      throw err;
+    }
+  };
+
+  selectNextCzar = async (gameID) => {
+    try {
+      const players = filter(
+        await this.fetchPlayersInGame(gameID),
+        (p) => p.state === "CZAR"
+      );
+
+      let nextIndex = randomIndex(players.length);
+
+      if (nextIndex > players.length) {
+        nextIndex = 0;
+      }
+
+      await this.updatePlayersInGame(gameID, { state: "IDLE" });
+      await this.updatePlayer(players[nextIndex].name, { state: "CZAR" });
+
+      return players[nextIndex];
     } catch (err) {
       throw err;
     }

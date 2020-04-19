@@ -386,13 +386,13 @@ class GameController extends CAHController {
   };
 
   emitPlayerLeft = (screenName, gameID) => {
-    this.logInfo(`[${screenName}]: Left the game ${gameID}`);
+    this.logDev(`[${screenName}]: Left the game ${gameID}`);
     this.io.to(gameID).emit("Notification", `${screenName} has left the game`);
     this.emitPlayersInGame(gameID);
   };
 
   emitPlayerJoined = (screenName, gameID) => {
-    this.logInfo(`[${screenName}]: Joined the game ${gameID}`);
+    this.logDev(`[${screenName}]: Joined the game ${gameID}`);
     this.io
       .to(gameID)
       .emit("Notification", `${screenName} has joined the game`);

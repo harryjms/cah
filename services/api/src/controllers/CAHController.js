@@ -16,10 +16,14 @@ class CAHController {
     this.ObjectID = (id) => new this.mongo.ObjectID(id);
   }
 
-  logInfo(...args) {
+  logDev(...args) {
     if (__DEV__) {
-      console.log(...args);
+      this.log(...args);
     }
+  }
+
+  log(...args) {
+    console.log(...args);
   }
 }
 
