@@ -708,7 +708,6 @@ class GameController extends CAHController {
         { state: "SELECTING" },
         { state: { $ne: "CZAR" } }
       );
-      await this.dealWhiteCards(gameID, null, false);
 
       let nextGame = {
         ...game,
@@ -730,6 +729,8 @@ class GameController extends CAHController {
       nextGame.currentRound.blackCard = nextBlackCard;
 
       await this.updateGame(gameID, nextGame);
+
+      await this.dealWhiteCards(gameID, null, false);
 
       // Send updates
       this.emitGameUpdate(gameID);
