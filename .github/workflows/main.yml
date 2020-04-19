@@ -12,4 +12,4 @@ jobs:
         username: ubuntu
         key: ${{ secrets.EC2_KEY }}
         port: 22
-        script: cd /opt/cah && git fetch && git pull --reset origin/master && docker-compose up --build -d api
+        script: cd /opt/cah && git fetch && git reset --hard origin/master && docker-compose up --build -d api
