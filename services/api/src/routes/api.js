@@ -28,16 +28,20 @@ const parseToken = (req, res, next) => {
   }
 };
 
+const Pack = new PackController();
+const Player = new PlayerController();
+const Game = new GameController();
+
 module.exports = router.use(
   "/",
   router
-    .get("/packs", new PackController().getPacks)
-    .get("/me", parseToken, new PlayerController().getMyDetails)
-    .post("/game", new GameController().postNewGame)
-    .post("/game/join", new GameController().postJoinGame)
-    .put("/game/start", parseToken, new GameController().putStartGame)
-    .post("/game/cards", parseToken, new GameController().postCardSelection)
-    .post("/game/winner", parseToken, new GameController().postSelectWinner)
-    .get("/game/end", parseToken, new GameController().postEndGame),
+    .get("/packs", Pack.getPacks)
+    .get("/me", parseToken, Player.getMyDetails)
+    .post("/game", Game.postNewGame)
+    .post("/game/join", Game.postJoinGame)
+    .put("/game/start", parseToken, Game.putStartGame)
+    .post("/game/cards", parseToken, Game.postCardSelection)
+    .post("/game/winner", parseToken, Game.postSelectWinner)
+    .get("/game/end", parseToken, Game.postEndGame),
   handleError
 );
