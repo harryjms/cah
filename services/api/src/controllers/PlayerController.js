@@ -179,6 +179,10 @@ class PlayerController extends CAHController {
         (p) => p.state !== "CZAR"
       );
 
+      if (players.length === 0) {
+        return null;
+      }
+
       let nextIndex = randomIndex(players.length);
 
       if (nextIndex > players.length - 1) {

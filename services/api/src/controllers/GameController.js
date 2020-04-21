@@ -389,7 +389,7 @@ class GameController extends CAHController {
         await this.Player.leaveGame(name, gameID);
         this.emitPlayerLeft(name, gameID);
       } catch (err) {
-        next(err);
+        throw err;
       }
     });
   };
