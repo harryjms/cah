@@ -1,6 +1,6 @@
 const CAHController = require("./CAHController");
 const GameController = require("./GameController");
-
+const Events = require("./Events").Events;
 const findIndex = require("lodash/findIndex");
 const filter = require("lodash/filter");
 const moment = require("moment").utc;
@@ -10,6 +10,10 @@ class PlayerController extends CAHController {
   constructor() {
     super();
     this.db = this.mongo().then((db) => db.collection("players"));
+
+    this.GameEvents.on(Events.Game.INSERT, (game) => {
+      console.log(`[${game._id}] created`);
+    });
   }
 
   /////////////////////////
@@ -174,6 +178,10 @@ class PlayerController extends CAHController {
         await this.fetchPlayersInGame(gameID),
         (p) => p.state !== "CZAR"
       );
+
+      if (players.length === 0) {
+        return null;
+      }
 
       let nextIndex = randomIndex(players.length);
 
