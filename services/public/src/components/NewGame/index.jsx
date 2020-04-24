@@ -18,7 +18,7 @@ const NewGame = ({ history }) => {
   const canSave = screenName !== "" && gameName !== "";
 
   useEffect(() => {
-    removeCookie("token");
+    // removeCookie("token");
   }, []);
 
   const handleGameName = (e) => {
