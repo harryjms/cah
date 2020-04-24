@@ -512,8 +512,8 @@ class GameController extends CAHController {
         playedWhite = reduce(
           game.previousRounds,
           (aggr, value, key) => {
-            aggr.push(flattenDeep(value.whiteCards));
-            return aggr;
+            aggr.push(value.whiteCards);
+            return flattenDeep(aggr);
           },
           []
         );
