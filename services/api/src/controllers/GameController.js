@@ -682,13 +682,14 @@ class GameController extends CAHController {
         currentRound: {
           ...game.currentRound,
           winner,
+          nextRoundAt: moment().add(8, "seconds").toDate(),
         },
       });
       this.emitGameUpdate(gameID);
 
       setTimeout(() => {
         this.nextRound(gameID);
-      }, 10000);
+      }, 8000);
     } catch (err) {
       throw err;
     }
