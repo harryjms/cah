@@ -6,6 +6,8 @@ import Button from "../Layout/Button";
 import Loading from "../Layout/Loading";
 import Invite from "../Layout/Invite";
 import { useGameContext } from "./index";
+import Modal from "../Layout/Modal";
+import Players from "./Players";
 
 const useStyles = createUseStyles({
   GameBar: {
@@ -42,12 +44,19 @@ const useStyles = createUseStyles({
       alignSelf: "flex-end",
     },
   },
+  players: {
+    "&:hover": {
+      textDecoration: "underline",
+      cursor: "pointer",
+    },
+  },
 });
 
 const GameBar = () => {
   const { game, player, allPlayers } = useGameContext();
   const classes = useStyles();
   const [showInvite, setShowInvite] = useState(false);
+  const [showPlayers, setShowPlayers] = useState(false);
   const isHost = game && player && game.host === player.name;
 
   const handleInvite = () => {
@@ -68,11 +77,14 @@ const GameBar = () => {
 
   return (
     <div className={classes.GameBar}>
-      {showInvite && <Invite code={game._id} onDismiss={handleInvite} />}
+      {/* {showInvite && <Invite code={game._id} onDismiss={handleInvite} />} */}
       <div className="content">
         <h2>
           {game.name}{" "}
-          <span>
+          <span
+            className={classes.players}
+            onClick={() => setShowPlayers(true)}
+          >
             {allPlayers.length} {allPlayers.length === 1 ? "Player" : "Players"}
           </span>
         </h2>
@@ -113,7 +125,12 @@ const GameBar = () => {
           )}
         </div>
       </div>
-      <div></div>
+      <Modal title="Players" show={showPlayers}>
+        <Players onDismiss={() => setShowPlayers(false)} />
+      </Modal>
+      <Modal title="Invite" show={showInvite}>
+        <Invite code={game._id} onDismiss={() => setShowInvite(false)} />
+      </Modal>
     </div>
   );
 };

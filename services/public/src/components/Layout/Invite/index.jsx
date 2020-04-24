@@ -8,13 +8,7 @@ const Invite = ({ code, onDismiss }) => {
   const [show, setShow] = useState(true);
   const container = document.getElementById("fs-load");
 
-  useEffect(() => {
-    container.classList.add("show");
-    return () => {
-      container.classList.remove("show");
-    };
-  }, []);
-  return createPortal(
+  return (
     <div
       style={{
         width: "100%",
@@ -37,8 +31,7 @@ const Invite = ({ code, onDismiss }) => {
       <Button onClick={() => onDismiss()} style={{ marginTop: 30 }}>
         Done
       </Button>
-    </div>,
-    container
+    </div>
   );
 };
 

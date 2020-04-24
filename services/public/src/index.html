@@ -41,12 +41,25 @@
         opacity: 1;
         pointer-events: all;
       }
+
+      #modal {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background-color: rgba(255, 255, 255, 0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
     </style>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   </head>
   <body>
     <div id="root">Loading...</div>
     <div id="fs-load"></div>
+    <div id="modal"></div>
     <div id="notification"></div>
     <script src="/bundle.js"></script>
   </body>
