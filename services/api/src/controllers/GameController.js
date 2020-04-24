@@ -534,7 +534,7 @@ class GameController extends CAHController {
           while (cardsNeeded > 0) {
             const dealIndex = randomIndex(availableWhite.length);
             newHand.push(availableWhite[dealIndex]);
-            availableWhite.splice(dealIndex, 1);
+            delete availableWhite[dealIndex];
             cardsNeeded--;
           }
 
