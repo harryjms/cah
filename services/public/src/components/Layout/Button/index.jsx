@@ -1,8 +1,12 @@
 import React from "react";
 import { createUseStyles } from "react-jss";
+import Loading from "../Loading";
 
 const useStyles = createUseStyles({
   Button: {
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "black",
     "-webkit-appearance": "none",
     color: "white",
@@ -28,11 +32,15 @@ const useStyles = createUseStyles({
   },
 });
 
-const Button = ({ children, ...props }) => {
+const Button = ({ children, processing, disabled, ...props }) => {
   const classes = useStyles();
   return (
-    <button {...props} className={classes.Button}>
-      {children}
+    <button
+      disabled={disabled || processing}
+      {...props}
+      className={classes.Button}
+    >
+      {processing ? <Loading size={20} /> : children}
     </button>
   );
 };
