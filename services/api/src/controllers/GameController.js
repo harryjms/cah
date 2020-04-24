@@ -729,9 +729,9 @@ class GameController extends CAHController {
       const nextBlackCard = await this.selectBlackCard(nextGame);
       nextGame.currentRound.blackCard = nextBlackCard;
 
-      await this.updateGame(gameID, nextGame);
-
-      await this.dealWhiteCards(gameID, null, false);
+      await this.updateGame(gameID, nextGame).then(() =>
+        this.dealWhiteCards(gameID, null, false)
+      );
 
       // Send updates
       this.emitGameUpdate(gameID);
