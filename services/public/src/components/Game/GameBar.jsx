@@ -17,14 +17,16 @@ const useStyles = createUseStyles({
     "& .content": {
       display: "flex",
       alignItems: "center",
+      "& .status": {
+        marginRight: 5,
+        fontSize: "10pt",
+        fontWeight: "normal",
+      },
     },
     "& .buttons": {
       display: "flex",
       whiteSpace: "nowrap",
       alignItems: "center",
-      "& .status": {
-        marginRight: 5,
-      },
       "& button": {
         marginRight: 5,
       },
@@ -77,7 +79,6 @@ const GameBar = () => {
 
   return (
     <div className={classes.GameBar}>
-      {/* {showInvite && <Invite code={game._id} onDismiss={handleInvite} />} */}
       <div className="content">
         <h2>
           {game.name}{" "}
@@ -87,8 +88,6 @@ const GameBar = () => {
           >
             {allPlayers.length} {allPlayers.length === 1 ? "Player" : "Players"}
           </span>
-        </h2>
-        <div className="buttons">
           <div className="status">
             {game.gameState === "IDLE" ? (
               <Loading>
@@ -98,15 +97,14 @@ const GameBar = () => {
               </Loading>
             ) : (
               player.state === "CZAR" && (
-                <div
-                  style={{ fontSize: "20pt", marginRight: 5 }}
-                  title="You will choose the winning combination this round."
-                >
-                  👑
-                </div>
+                <>
+                  👑 You are the Czar. You will choose the winning combination.
+                </>
               )
             )}
           </div>
+        </h2>
+        <div className="buttons">
           {isHost &&
             (game.gameState === "IDLE" ? (
               <Button
