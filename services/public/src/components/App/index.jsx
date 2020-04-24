@@ -5,7 +5,6 @@ import { CookiesProvider } from "react-cookie";
 import { ThemeProvider } from "react-jss";
 import theme from "../../theme";
 import ErrorBoundary from "../ErrorBoundary";
-import NewGame from "../NewGame";
 import Lobby from "../Lobby";
 import Game from "../Game";
 import Error404 from "../Error404";
