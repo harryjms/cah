@@ -26,7 +26,7 @@ const App = () => {
                 )}
               />
               <Route path="/join/:gameID?" component={Lobby} />
-              <Route path="/" exact component={NewGame} />
+              <Route path="/" exact component={Lobby} />
               <Route component={Error404} />
             </Switch>
           </CookiesProvider>

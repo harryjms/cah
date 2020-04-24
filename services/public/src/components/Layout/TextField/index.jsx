@@ -11,10 +11,12 @@ const useStyles = createUseStyles({
       outline: "none",
       borderWidth: 1,
       borderStyle: "solid",
-      borderColor: "#444444",
+      borderColor: "#dadada",
       padding: "8px 10px",
       marginRight: 8,
+      transition: "all 0.2s ease-in-out",
       "&:focus": {
+        borderColor: "#444444",
         boxShadow: "0 0 0 1px #444444",
       },
       "&:disabled": {
