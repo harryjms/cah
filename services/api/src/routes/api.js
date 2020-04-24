@@ -3,6 +3,7 @@ const jwt = require("../helpers/jwt");
 const GameController = require("../controllers/GameController");
 const PlayerController = require("../controllers/PlayerController");
 const PackController = require("../controllers/PackController");
+const InviteController = require("../controllers/InviteController");
 const log = require("log-to-file");
 const path = require("path");
 
@@ -31,6 +32,7 @@ const parseToken = (req, res, next) => {
 const Pack = new PackController();
 const Player = new PlayerController();
 const Game = new GameController();
+const Invite = new InviteController();
 
 module.exports = router.use(
   "/",
@@ -42,6 +44,7 @@ module.exports = router.use(
     .put("/game/start", parseToken, Game.putStartGame)
     .post("/game/cards", parseToken, Game.postCardSelection)
     .post("/game/winner", parseToken, Game.postSelectWinner)
-    .get("/game/end", parseToken, Game.postEndGame),
+    .get("/game/end", parseToken, Game.postEndGame)
+    .get("/invite/:code", Invite.getCheckInite),
   handleError
 );
