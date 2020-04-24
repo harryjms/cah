@@ -1,6 +1,5 @@
 const path = require("path");
 const fs = require("fs");
-const find = require("lodash/find");
 const CAHController = require("./CAHController");
 const PlayerController = require("./PlayerController");
 

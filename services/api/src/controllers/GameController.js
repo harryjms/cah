@@ -6,7 +6,6 @@ const filter = require("lodash/filter");
 const findIndex = require("lodash/findIndex");
 const reduce = require("lodash/reduce");
 const flattenDeep = require("lodash/flattenDeep");
-const Events = require("./Events").Events;
 
 const randomIndex = (max) => Math.floor(Math.random() * max + 1) - 1;
 
@@ -48,21 +47,13 @@ class GameController extends CAHController {
     };
     return this.db()
       .then((coll) => coll.insertOne(gameData))
-      .then(({ insertedId }) => ({ ...gameData, _id: insertedId.toString() }))
-      .then((game) => {
-        this.GameEvents.emit(Events.Game.INSERT, game);
-        return game;
-      });
+      .then(({ insertedId }) => ({ ...gameData, _id: insertedId.toString() }));
   };
 
   updateGame = (gameID, changes) => {
-    return this.db()
-      .then((col) =>
-        col.updateOne({ _id: this.ObjectID(gameID) }, { $set: { ...changes } })
-      )
-      .then((game) => {
-        this.GameEvents.emit(Events.Game.UPDATE, game);
-      });
+    return this.db().then((col) =>
+      col.updateOne({ _id: this.ObjectID(gameID) }, { $set: { ...changes } })
+    );
   };
 
   fetchGameWinners = (gameID) => {
