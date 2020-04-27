@@ -530,11 +530,16 @@ class GameController extends CAHController {
       await Promise.all(
         players.map(async (player) => {
           let cardsNeeded = 10 - player.hand.length;
+
+          if (cardsNeeded === 0) {
+            return;
+          }
+
           let newHand = [...player.hand];
           while (cardsNeeded > 0) {
             const dealIndex = randomIndex(availableWhite.length);
             newHand.push(availableWhite[dealIndex]);
-            delete availableWhite[dealIndex];
+            availableWhite.splice(dealIndex, 1);
             cardsNeeded--;
           }
 
