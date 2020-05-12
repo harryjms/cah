@@ -536,11 +536,10 @@ class GameController extends CAHController {
           }
 
           let newHand = [...player.hand];
-          while (cardsNeeded > 0) {
+          for (let i = 0; i < cardsNeeded; i++) {
             const dealIndex = randomIndex(availableWhite.length);
             newHand.push(availableWhite[dealIndex]);
             availableWhite.splice(dealIndex, 1);
-            cardsNeeded--;
           }
 
           return await this.Player.updatePlayer(player.name, gameID, {
