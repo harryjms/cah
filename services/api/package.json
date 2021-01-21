@@ -19,7 +19,7 @@
     "moment": "^2.24.0",
     "mongodb": "^3.5.5",
     "redis": "^3.0.2",
-    "socket.io": "^2.3.0",
+    "socket.io": "^2.4.0",
     "uuid": "^7.0.3"
   },
   "devDependencies": {
