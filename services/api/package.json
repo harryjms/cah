@@ -16,7 +16,7 @@
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.15",
     "log-to-file": "^2.0.2",
-    "moment": "^2.24.0",
+    "moment": "^2.29.2",
     "mongodb": "^3.5.5",
     "redis": "^3.0.2",
     "socket.io": "^2.3.0",
